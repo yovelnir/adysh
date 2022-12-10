@@ -1,0 +1,58 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ADYSH - Login</title>
+  </head>
+  <link rel="stylesheet" href="{% static 'index.css' %}" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Montserrat&display=swap"
+    rel="stylesheet"
+  />
+  <body> 
+   
+    <form method="POST">  
+      {% csrf_token %}
+      <div class="imgcontainer">
+        <img
+          src="{% static 'SCE_logo.png' %}"
+          alt="Avatar"
+          class="avatar"
+        />
+      </div>
+      <div class="container">
+        <h3 class="input_labals">ID</br></h3>
+        <input style="width: 70%;" class="input_fields" type="text" placeholder="Enter ID" name="uid" minlength="9" maxlength="9" required />
+
+        <h3 class="input_labals"></br>Password</br></h3>
+        <input
+          style="width: 70%;"
+          class="input_fields"
+          type="password"
+          placeholder="Enter Password"
+          name="upassword"
+          required
+        />
+        </br> 
+        {% if not user.is_authinticated %} 
+          {% for message in messages %} 
+          <div><h4 id="error_message">ID or Password are wrong</h4>
+          </div>  
+          {% endfor %} 
+        {% endif %}
+
+        <button type="submit" class="input_fields"id="loginbtn" style="width: 30%;">Login</button> 
+        <br> 
+        <div id="banner" ><h3>ADYSH</h3></div>
+      </div>
+    </form> 
+    
+    
+    </div>
+  </body>
+</html>

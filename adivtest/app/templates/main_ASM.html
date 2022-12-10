@@ -1,0 +1,33 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="{% static 'styles.css' %}" />
+    <link rel="stylesheet" href="{% static 'main_ASM.css' %}" />
+    <title>Main Page</title>
+  </head>
+  <body>  
+    <a href="/"
+      ><button type="submit" id="logoutbtn">
+        <p>Logout</p>
+      </button>
+    </a>    
+
+    <br>
+    <div id="user_details">Connect as: {{user.get_full_name}}</div>
+    
+    <div class="imgcontainer">
+      <img src="{% static 'SCE_logo.png' %}" alt="Avatar" class="avatar" />
+    </div>
+    <div class="container">
+      <div class="tab"><h2 id="tab_text">My Courses</h2></div>
+      <div class="tab"><h2 id="tab_text">New Order Request</h2></div>
+      <div class="tab"><h2 id="tab_text">PickUp</h2></div>
+    </div>
+    <div id="banner"><h3>ADYSH</h3></div> 
+  </body>
+</html>
+
