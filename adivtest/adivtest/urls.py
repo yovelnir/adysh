@@ -21,7 +21,8 @@ from django.conf.urls.static import static #for css and pictures files to be inc
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', views.login_user, name = 'login_user'),            #login page path
+    path('', views.login, name = 'login'),            #login page path
+    path('home/', views.postLogin),
     path('main_ASM/', views.main_ASM, name = 'main_ASM'),       #path for ASM user 
     path('',views.logout_user, name= 'logout'),               #logout for each persona */*
 ]

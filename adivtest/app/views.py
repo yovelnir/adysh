@@ -22,23 +22,48 @@ firebase = pyrebase.initialize_app(config)
 authe = firebase.auth()
 database = firebase.database()
 
-def login_user(request): 
-    if request.method == 'GET': 
-        return render (request, 'index.html', {'form':AuthenticationForm()}) 
-    else: 
-        user = authenticate(request, username= request.POST['uid'], password= request.POST['upassword']) 
-        #some weird stuff with authenticate function
-        if user is None: 
-            context = messages.error(request,'username or password not correct')        
-            return render (request, 'index.html', context) 
-        else:
-            login(request, user)
-            if user.is_superuser:  
-                response = redirect('/admin/')
-                return response
-            else: 
-                response = redirect('/main_ASM/')
-                return response  #will be needed for each type of persona 
+def postLogin(request):
+    email = request.POST.get('email')
+    pasw = request.POST.get('pass')
+    try:
+        user = authe.sign_in_with_email_and_password(email,pasw)
+    except:
+        message = "Invalid User! Please check email and password"
+        return render(request,"Login.html",{"message":message})
+    
+    session_id = user['idToken']
+    request.session['uid']=str(session_id)
+    user_data = {
+        'role': database.child('users').child(email[0:email.index('@')]).child('role').get().val(),
+        'ID': database.child('users').child(email[0:email.index('@')]).child('id').get().val(),
+        'name': database.child('users').child(email[0:email.index('@')]).child('full_name').get().val(),
+    }
+
+    if user_data['role'] == 1:
+        return render(request,"main_ASM.html",user_data)
+    else:
+        return render(request,"main_Wmanager.html",user_data)
+
+def login(request):
+    return render(request, 'login.html')
+
+# def login_user(request): 
+#     if request.method == 'GET': 
+#         return render (request, 'login.html', {'form':AuthenticationForm()}) 
+#     else: 
+#         user = authenticate(request, username= request.POST['uid'], password= request.POST['upassword']) 
+#         #some weird stuff with authenticate function
+#         if user is None: 
+#             context = messages.error(request,'username or password not correct')        
+#             return render (request, 'index.html', context) 
+#         else:
+#             login(request, user)
+#             if user.is_superuser:  
+#                 response = redirect('/admin/')
+#                 return response
+#             else: 
+#                 response = redirect('/main_ASM/')
+#                 return response  #will be needed for each type of persona 
 
 
 @login_required
