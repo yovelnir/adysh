@@ -8,7 +8,19 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse 
 from django.contrib import messages
 
+config = {
+    'apiKey': "AIzaSyAXmr_K0XssRKaC03Ad45bkRWt0Q43CI1w",
+    'authDomain': "adysh-d6408.firebaseapp.com",
+    'databaseURL': "https://adysh-d6408-default-rtdb.asia-southeast1.firebasedatabase.app",
+    'projectId': "adysh-d6408",
+    'storageBucket': "adysh-d6408.appspot.com",
+    'messagingSenderId': "449013193486",
+    'appId': "1:449013193486:web:f3907584053a64ff28d55f"
+}
 
+firebase = pyrebase.initialize_app(config)
+authe = firebase.auth()
+database = firebase.database()
 
 def login_user(request): 
     if request.method == 'GET': 
