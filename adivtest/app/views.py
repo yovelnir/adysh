@@ -47,24 +47,6 @@ def postLogin(request):
 def login(request):
     return render(request, 'login.html')
 
-# def login_user(request): 
-#     if request.method == 'GET': 
-#         return render (request, 'login.html', {'form':AuthenticationForm()}) 
-#     else: 
-#         user = authenticate(request, username= request.POST['uid'], password= request.POST['upassword']) 
-#         #some weird stuff with authenticate function
-#         if user is None: 
-#             context = messages.error(request,'username or password not correct')        
-#             return render (request, 'index.html', context) 
-#         else:
-#             login(request, user)
-#             if user.is_superuser:  
-#                 response = redirect('/admin/')
-#                 return response
-#             else: 
-#                 response = redirect('/main_ASM/')
-#                 return response  #will be needed for each type of persona 
-
 
 @login_required
 def logout_user(request): 
