@@ -1,20 +1,22 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static 'styles.css' %}" />
+    <link rel="stylesheet" href="{% static 'main_Wmanager.css' %}" />
     <title>Main Page</title>
-    <link rel="stylesheet" href="/styles.css"> 
-    <link rel="stylesheet" href="/Wmanager/main_Wmanager.css">
 </head>
 <body>
     <a href="/"
       ><button type="submit" id="logoutbtn"><p>Logout</p></button></a
     > 
-    <div id="user_details">Connect as: </div>
+    <br>
+    <div id="user_details">Connect as: {{name}}</div>
     <div class="imgcontainer">
-      <img src="/images/SCE_logo.png" alt="Avatar" class="avatar" />
+      <img src="{% static 'SCE_logo.png' %}" alt="Avatar" class="avatar" />
     </div>
     <div class="container">
       <div class="tab"><h2 id="tab_text">Manage Inventory Menu</h2></div>
