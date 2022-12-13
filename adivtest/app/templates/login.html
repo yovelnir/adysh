@@ -1,4 +1,9 @@
 {% load static %}
+{% if logout %}
+<script>
+    alert('{{ logout }}');
+</script>
+{% endif %}
 <!DOCTYPE html>
 <html lang="en">
   <head>

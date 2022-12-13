@@ -42,19 +42,15 @@ def postLogin(request):
     elif user_data['role'] == 3:
         return render(request,"main_ASM.html",user_data)
 
-def login(request):
+def login_page(request):
+    if authe.current_user:
+        authe.current_user = None
+        message = "Succesfully logged out!"
+        return render(request, 'login.html', {'logout': message})
     return render(request, 'login.html')
 
-
-@login_required
-def logout_user(request): 
-    logout(request)                         #adiv comment: this function does not connected to anything!
-    return render(request, 'index.html')    #which mean that the user never logout 
-
-@login_required
 def main_Student(request): 
     return render(request, 'main_Student.html')
 
-@login_required
 def main_ASM(request): 
     return render(request, 'main_ASM.html')
