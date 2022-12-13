@@ -33,11 +33,7 @@ def postLogin(request):
     
     session_id = user['idToken']
     request.session['uid']=str(session_id)
-    user_data = {
-        'role': database.child('users').child(email[0:email.index('@')]).child('role').get().val(),
-        'ID': database.child('users').child(email[0:email.index('@')]).child('id').get().val(),
-        'name': database.child('users').child(email[0:email.index('@')]).child('full_name').get().val(),
-    }
+    user_data = database.child('users').child(email[0:email.index('@')]).get().val()
 
     if user_data['role'] == 1:
         return render(request,"main_ASM.html",user_data)
