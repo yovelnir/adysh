@@ -40,7 +40,7 @@ def postLogin(request):
     }
 
     if user_data['role'] == 1:
-        return render(request,"main_ASM.html",user_data)
+        return render(request,"main_Student.html",user_data)
     else:
         return render(request,"main_Wmanager.html",user_data)
 
@@ -54,5 +54,5 @@ def logout_user(request):
     return render(request, 'index.html')
 
 @login_required
-def main_ASM(request): 
-    return render(request, 'main_ASM.html')
+def main_Student(request): 
+    return render(request, 'main_Student.html')
