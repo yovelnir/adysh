@@ -37,8 +37,10 @@ def postLogin(request):
 
     if user_data['role'] == 1:
         return render(request,"main_Student.html",user_data)
-    else:
+    elif user_data['role'] == 2:
         return render(request,"main_Wmanager.html",user_data)
+    elif user_data['role'] == 3:
+        return render(request,"main_ASM.html",user_data)
 
 def login(request):
     return render(request, 'login.html')
@@ -46,9 +48,13 @@ def login(request):
 
 @login_required
 def logout_user(request): 
-    logout(request) 
-    return render(request, 'index.html')
+    logout(request)                         #adiv comment: this function does not connected to anything!
+    return render(request, 'index.html')    #which mean that the user never logout 
 
 @login_required
 def main_Student(request): 
     return render(request, 'main_Student.html')
+
+@login_required
+def main_ASM(request): 
+    return render(request, 'main_ASM.html')
