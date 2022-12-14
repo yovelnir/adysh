@@ -24,10 +24,10 @@ auth.current_user = None
 
 class AcademicStaffTestCase(TestCase): 
     def setUp(self):
-        auth.sign_in_with_email_and_password("ASMtest@test.com", "111111") 
+        auth.sign_in_with_email_and_password("stafftest@test.com", "123456") 
         
     def test_ASM_login(self): 
-        email, passw = "ASMtest@test.com", "111111"
+        email, passw = "stafftest@test.com", "123456"
         student = auth.sign_in_with_email_and_password(email, passw)
         student_data = db.child('users').child(email[:email.index('@')]).get().val()
 
@@ -35,6 +35,6 @@ class AcademicStaffTestCase(TestCase):
         self.assertTrue(auth.current_user)
         #Checking if user data is equal to db data
         self.assertEqual(student['idToken'], auth.current_user['idToken'], "It is the same user!")
-        self.assertEqual(student_data['role'], 3, "User should be role 3 (student)")
+        self.assertEqual(student_data['role'], 3, "User should be role 3 (academic staff member)")
         
 auth.current_user = None
