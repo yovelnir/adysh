@@ -19,4 +19,21 @@ class StudentTestCase(TestCase):
         self.assertEqual(student['idToken'], auth.current_user['idToken'], "It is the same user!")
         self.assertEqual(student_data['role'], 1, "User should be role 1 (student)")
         
-auth.current_user = None        
+auth.current_user = None      
+
+class managerTestCase(TestCase):
+    def setUp(self):
+        auth.sign_in_with_email_and_password("managertest@test.com", "123456")
+    
+    def test_manager_login(self):
+        email, passw = "managertest@test.com", "123456"
+        student = auth.sign_in_with_email_and_password(email, passw)
+        student_data = db.child('users').child(email[:email.index('@')]).get().val()
+
+        #Check if the user is really looged in
+        self.assertTrue(auth.current_user)
+        #Checking if user data is equal
+        self.assertEqual(student['idToken'], auth.current_user['idToken'], "It is the same user!")
+        self.assertEqual(student_data['role'], 2, "User should be role 2 (manager)")
+
+auth.current_user = None 
