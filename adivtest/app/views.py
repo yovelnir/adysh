@@ -5,7 +5,7 @@ from django.contrib.auth import login, logout , authenticate
 from django.contrib.auth.models import User
 from django.db import IntegrityError 
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse 
+from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib import messages
 
 config = {
@@ -29,11 +29,11 @@ def postLogin(request):
         user = authe.sign_in_with_email_and_password(email,pasw)
     except:
         message = "Invalid User! Please check email and password"
-        return render(request,"Login.html",{"message":message})
-    
+        return render(request,"login.html",{"message":message})
     session_id = user['idToken']
     request.session['uid']=str(session_id)
-    user_data = database.child('users').child(email[0:email.index('@')]).get().val()
+    request.session['email']=str(email)
+    user_data = database.child('users').child(email[:email.index('@')]).get().val()
 
     if user_data['role'] == 1:
         return render(request,"main_Student.html",user_data)
@@ -43,11 +43,15 @@ def postLogin(request):
         return render(request,"main_ASM.html",user_data)
 
 def login_page(request):
-    if authe.current_user:
-        authe.current_user = None
-        message = "Succesfully logged out!"
-        return render(request, 'login.html', {'logout': message})
     return render(request, 'login.html')
+
+def logout(request):
+    try:
+        del request.session['uid']
+    except:
+        pass
+    render(request, "login.html")
+    return HttpResponseRedirect('/')
 
 def main_Student(request): 
     return render(request, 'main_Student.html')
@@ -55,9 +59,16 @@ def main_Student(request):
 def main_ASM(request): 
     return render(request, 'main_ASM.html')
 
-def InevtoryASM(request): 
-    for i in database.child('inventory'): 
-        inventory_dic = {'i':}
-        productName = database.child('inventory').child('i').child('Product Name').get().val() 
-        porductQuan = database.child('inventory').child('i').child('Quantity').get().val()
-    return render(request, "inventory_stock_ASM.html")
+def create_user(request):
+    full_name = "{} {}".format(request.POST.get('fname'),request.POST.get('lname'))
+    num_id, role = int(request.POST.get('id')), int(request.POST.get('role'))
+    email, password = request.POST.get('email'), request.POST.get('password')
+    database.child('users').child(email[0:email.index('@')]).set({
+        'full_name': full_name,
+        'id': num_id,
+        'role': role,
+    })
+    authe.create_user_with_email_and_password(email, password)
+    email = request.session['email']
+    user_data = database.child('users').child(email[:email.index('@')]).get().val()
+    return render(request,"main_Wmanager.html", user_data)
