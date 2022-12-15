@@ -54,3 +54,10 @@ def main_Student(request):
 
 def main_ASM(request): 
     return render(request, 'main_ASM.html')
+
+def InevtoryASM(request): 
+    for i in database.child('inventory'): 
+        inventory_dic = {'i':}
+        productName = database.child('inventory').child('i').child('Product Name').get().val() 
+        porductQuan = database.child('inventory').child('i').child('Quantity').get().val()
+    return render(request, "inventory_stock_ASM.html")
