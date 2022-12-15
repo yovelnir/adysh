@@ -27,5 +27,6 @@ urlpatterns = [
     path('main_ASM/',views.main_ASM,name='main_ASM'),         #path to main page for ASM   
     path('create_user/',views.create_user, name='create_user'),
     path('inventory_stock/',views.inventory_stock, name='inventory_stock'),
+    path('delete_user/',views.remove_user, name='delete_user'),
     path('logout/', views.logout, name='logout')
 ]

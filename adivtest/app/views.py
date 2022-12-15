@@ -64,12 +64,25 @@ def create_user(request):
     full_name = "{} {}".format(request.POST.get('fname'),request.POST.get('lname'))
     num_id, role = int(request.POST.get('id')), int(request.POST.get('role'))
     email, password = request.POST.get('email'), request.POST.get('password')
+    user = authe.create_user_with_email_and_password(email, password)
     database.child('users').child(email[0:email.index('@')]).set({
+        'idToken': user['idToken'],
         'full_name': full_name,
         'id': num_id,
         'role': role,
     })
-    authe.create_user_with_email_and_password(email, password)
+    
+    email = request.session['email']
+    user_data = database.child('users').child(email[:email.index('@')]).get().val()
+    return render(request,"main_Wmanager.html", user_data)
+
+def remove_user(request):
+    email = request.POST.get('email')
+    idToken = database.child('users').child(email[:email.index('@')]).child('idToken').get().val()
+    authe.delete_user_account(idToken)
+
+    database.child('users').child(email[:email.index('@')]).remove()
+
     email = request.session['email']
     user_data = database.child('users').child(email[:email.index('@')]).get().val()
     return render(request,"main_Wmanager.html", user_data)

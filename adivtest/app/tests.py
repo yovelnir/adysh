@@ -53,3 +53,32 @@ class managerTestCase(TestCase):
         self.assertEqual(manager_data['role'], 2, "User should be role 2 ( warehouse manager)")
         
 auth.current_user = None
+
+class ManageUsers(TestCase):
+
+    def testCreation(self):
+
+        auth.create_user_with_email_and_password('test@test.com','123456') 
+        user = auth.sign_in_with_email_and_password('test@test.com', '123456')
+
+        email = 'test@test.com' 
+        full_name = 'test test' 
+        num_id = 123123123 
+        role = 1
+
+        db.child('users').child(email[0:email.index('@')]).set({
+        'idToken': user['idToken'],
+        'full_name': full_name,
+        'id': num_id,
+        'role': role,
+    })
+        self.assertNotEqual(user,None) 
+
+
+    def testDelete(self):     
+        email = 'test@test.com' 
+        user = auth.sign_in_with_email_and_password('test@test.com', '123456') 
+        auth.delete_user_account(user['idToken']) 
+        db.child('users').child(email[0:email.index('@')]).remove()
+        idToken = db.child('users').child(email[:email.index('@')]).child('idToken').get().val()
+        self.assertNotEqual(user['idToken'] ,idToken)
