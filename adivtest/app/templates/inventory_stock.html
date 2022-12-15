@@ -1,0 +1,43 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static 'inventory_stock.css' %}">
+    <title>Stock Page</title>
+<head> 
+    <div>
+        <!-- <table>
+            <tr>
+                <th>Product Name</th>
+                <th>Quantity</th>
+            </tr>
+            <tr>
+                <td style="width: 100px;"> {{ product_name }} </td>
+                <td style="width: 100px;"> {{ Quantity }}</td>
+            </tr>
+        </table> -->
+        <table>
+            <thead>
+              <tr>
+                <th>Product Name</th>
+                <th>Quantity</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for product_name,product_amount in items %}
+              <tr>
+                <td>{{ product_name }}</td>
+                <td>{{ product_amount }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+          
+    </div>
+
+<div id="banner"><h3>ADYSH</h3></div> 
+
+</html>
