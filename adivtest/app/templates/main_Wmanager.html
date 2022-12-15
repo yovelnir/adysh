@@ -6,11 +6,12 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{% static 'styles.css' %}" />
-    <link rel="stylesheet" href="{% static 'main_Wmanager.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css'' %}" />
+    <script src="{% static 'js/bootstrap.min.js' %}"></script>  
     <title>Main Page</title>
 </head>
 <body>
-    <a href="/"
+    <a href="{% url 'logout' %}"
       ><button type="submit" id="logoutbtn"><p>Logout</p></button></a
     > 
     <br>
@@ -21,9 +22,82 @@
     <div class="container">
       <div class="tab"><h2 id="tab_text">Manage Inventory        Menu</h2></div>
       <div class="tab"><h2 id="tab_text">Manage Orders</h2></div>
-      <div class="tab"><h2 id="tab_text">Manage Users</h2></div>
+      <div class="tab" type="button" data-bs-toggle="modal" data-bs-target="#manageUsers"><h2 id="tab_text">Manage Users</h2></div></button>
       <div class="tab"><h2 id="tab_text">PickUp Schedule</h2></div>
     </div>
     <div id="banner"><h3>ADYSH</h3></div>
+
+<!--User Management Modal -->
+<div class="modal fade" id="manageUsers" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="manageUsersLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="manageUsersLabel">User Management</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <!--Create User Button-->
+        <div class="tab" type="button" data-bs-toggle="modal" data-bs-target="#CreateUser"><h3 id="tab_text">Create User</h2></div>
+        <!--Remove User Button-->
+        <div class="tab"><h3 id="tab_text">Remove User</h2></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!--User Management Modal -->
+
+<!--Create User Modal-->
+<div class="modal fade" id="CreateUser" aria-hidden="true" aria-labelledby="exampleModalToggleLabel" tabindex="-1" data-bs-backdrop="static">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form action="{% url 'create_user' %}" method="POST">
+        {% csrf_token %}
+        <div class="modal-body">
+          <h2>Create new user:</h2><br>
+          <br>
+          <!--First name text input-->
+          <label for="fname">First name:</label>
+          <input type="text" id="fname" name="fname" required><br>
+
+          <!--Last name text input-->
+          <label for="lname">Last name:</label>
+          <input type="text" id="lname" name="lname" required><br>
+
+          <!--ID text input--> 
+          <label for="id">ID:</label>
+          <input type="text" id="id" name="id" minlength="9" maxlength="9" required><br>
+
+          <!--Email text input-->
+          <label for="email">Email:</label>
+          <input type="text" id="email" name="email" required><br>
+
+          <!--Password text input-->
+          <label for="password">Password:</label>
+          <input type="text" id="password" name="password" required><br>
+
+          <!--Role select option input-->
+          <label>User role:</label><br>
+          <input type="radio" id="student" name="role" value="1" required>
+          <label for="student">Student</label><br>
+          <input type="radio" id="asm" name="role" value="3" required>
+          <label for="asm">Academic Staff Member</label><br>
+          <input type="radio" id="manager" name="role" value="2" required>
+          <label for="manager">Warehouse Manager</label><br>
+
+          <!--Submit to create new user-->
+          <button type="submit" class="btn btn-primary" style="width: 30%;">Create User</button>
+
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+<!--Create User Modal-->
 </body>
 </html>
