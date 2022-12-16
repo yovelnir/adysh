@@ -82,3 +82,11 @@ class ManageUsers(TestCase):
         db.child('users').child(email[0:email.index('@')]).remove()
         idToken = db.child('users').child(email[:email.index('@')]).child('idToken').get().val()
         self.assertNotEqual(user['idToken'] ,idToken)
+
+class ViewInventory(TestCase):
+    def test_Inventory_Is_Empty(self):
+            Prod=db.child('Inventory').child('1').child('Quantity').get().val()
+            self.assertNotEqual(Prod,None)
+
+    
+
