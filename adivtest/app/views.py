@@ -87,13 +87,44 @@ def remove_user(request):
     user_data = database.child('users').child(email[:email.index('@')]).get().val()
     return render(request,"main_Wmanager.html", user_data)
 
+    
+
 def inventory_stock(request):
     inventory = database.child('Inventory').get()
 
-    items=list()
-    for i  in inventory.each():
-        product_name = database.child('Inventory').child(i.key()).child('product_name').get().val()
-        product_amount = database.child('Inventory').child(i.key()).child('Quantity').get().val()
-        items.append((product_name,product_amount))
+    if 'InStock' in request.POST: 
+        filter = request.POST['InStock'] 
+    elif 'OutOfStock' in request.POST:
+        filter = request.POST['OutOfStock']
+    else: 
+        filter = '0'
+    items = list()
+     
+#========InStock   
+    if filter == '1': 
+        for i in inventory.each(): 
+            if database.child('Inventory').child(i.key()).child('Quantity').get().val() is not None:
+                if database.child('Inventory').child(i.key()).child('Quantity').get().val() > 0: 
+                    product_name = database.child('Inventory').child(i.key()).child('product_name').get().val()
+                    product_amount = database.child('Inventory').child(i.key()).child('Quantity').get().val()
+                    items.append((product_name,product_amount)) 
 
-    return render(request, "inventory_stock.html", {'items':items})
+        return render(request, "inventory_stock_ASM.html", {'items':items})  
+#========OutOfStock
+    if filter == '2': 
+        for i in inventory.each(): 
+            if database.child('Inventory').child(i.key()).child('Quantity').get().val() is not None:
+                if database.child('Inventory').child(i.key()).child('Quantity').get().val() == 0: 
+                    product_name = database.child('Inventory').child(i.key()).child('product_name').get().val()
+                    product_amount = database.child('Inventory').child(i.key()).child('Quantity').get().val()
+                    items.append((product_name,product_amount)) 
+
+        return render(request, "inventory_stock_ASM.html", {'items':items})  
+#========ShowAll Case
+    else: 
+        for i in inventory.each():
+            product_name = database.child('Inventory').child(i.key()).child('product_name').get().val()
+            product_amount = database.child('Inventory').child(i.key()).child('Quantity').get().val()
+            items.append((product_name,product_amount)) 
+            
+        return render(request, "inventory_stock_ASM.html", {'items':items})
