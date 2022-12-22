@@ -38,16 +38,17 @@ def postLogin(request):
     request.session['uid']=str(session_id)
     #----Saving user's email in the current session to access database in other pages
     request.session['email']=str(email)
+    short_mail = email[:email.index('@')]
 
     #----Checking user's role----
-    if email[:email.index('@')] in database.child('users').child('students').get().val():
-        user_data = database.child('users').child('students').child(email[:email.index('@')]).get().val()
+    if short_mail in database.child('users').child('students').get().val():
+        user_data = database.child('users').child('students').child(short_mail).get().val()
         request.session['role'] = 'students'
-    elif email[:email.index('@')] in database.child('users').child('managers').get().val():
-        user_data = database.child('users').child('managers').child(email[:email.index('@')]).get().val()
+    elif short_mail in database.child('users').child('managers').get().val():
+        user_data = database.child('users').child('managers').child(short_mail).get().val()
         request.session['role'] = 'managers'
-    elif email[:email.index('@')] in database.child('users').child('staff').get().val():
-        user_data = database.child('users').child('staff').child(email[:email.index('@')]).get().val()
+    elif short_mail in database.child('users').child('staff').get().val():
+        user_data = database.child('users').child('staff').child(short_mail).get().val()
         request.session['role'] = 'staff'
 
     #----Rendering home page based on user's role----
@@ -84,27 +85,28 @@ def create_user(request):
     full_name = "{} {}".format(request.POST.get('fname'),request.POST.get('lname'))
     num_id, role = int(request.POST.get('id')), int(request.POST.get('role'))
     email, password = request.POST.get('email'), request.POST.get('password')
+    short_mail = email[:email.index('@')]
 
-    if email[:email.index('@')] not in database.child('users').child('students').get().val() \
-    and email[:email.index('@')] not in database.child('users').child('staff').get().val() \
-    and email[:email.index('@')] not in database.child('users').child('managers').get().val():
+    if short_mail not in database.child('users').child('students').get().val() \
+    and short_mail not in database.child('users').child('staff').get().val() \
+    and short_mail not in database.child('users').child('managers').get().val():
         if role == 1:
             user = authe.create_user_with_email_and_password(email, password)
-            database.child('users').child('students').child(email[0:email.index('@')]).set({
+            database.child('users').child('students').child(short_mail).set({
                 'idToken': user['idToken'],
                 'full_name': full_name,
                 'id': num_id,
             })
         elif role == 2:
             user = authe.create_user_with_email_and_password(email, password)
-            database.child('users').child('managers').child(email[0:email.index('@')]).set({
+            database.child('users').child('managers').child(short_mail).set({
                 'idToken': user['idToken'],
                 'full_name': full_name,
                 'id': num_id,
             })
         elif role == 3:
             user = authe.create_user_with_email_and_password(email, password)
-            database.child('users').child('staff').child(email[0:email.index('@')]).set({
+            database.child('users').child('staff').child(short_mail).set({
                 'idToken': user['idToken'],
                 'full_name': full_name,
                 'id': num_id,
@@ -122,25 +124,26 @@ def remove_user(request):
 
     email = request.POST.get('email')
     if email != request.session['email']:
-        if email[:email.index('@')] in database.child('users').child('students').get().val():
-            idToken = database.child('users').child('students').child(email[:email.index('@')]).child('idToken').get().val()
+        short_mail = email[:email.index('@')]
+        if short_mail in database.child('users').child('students').get().val():
+            idToken = database.child('users').child('students').child(short_mail).child('idToken').get().val()
             role = 1
-        elif email[:email.index('@')] in database.child('users').child('managers').get().val():
-            idToken = database.child('users').child('managers').child(email[:email.index('@')]).child('idToken').get().val()
+        elif short_mail in database.child('users').child('managers').get().val():
+            idToken = database.child('users').child('managers').child(short_mail).child('idToken').get().val()
             role = 2
-        elif email[:email.index('@')] in database.child('users').child('staff').get().val():
-            idToken = database.child('users').child('staff').child(email[:email.index('@')]).child('idToken').get().val()
-            role = 2
+        elif short_mail in database.child('users').child('staff').get().val():
+            idToken = database.child('users').child('staff').child(short_mail).child('idToken').get().val()
+            role = 3
             
         if idToken:
             authe.delete_user_account(idToken)
 
             if role == 1:
-                database.child('users').child('students').child(email[:email.index('@')]).remove()
+                database.child('users').child('students').child(short_mail).remove()
             elif role == 2:
-                database.child('users').child('managers').child(email[:email.index('@')]).remove()
+                database.child('users').child('managers').child(short_mail).remove()
             elif role == 3:
-                database.child('users').child('staff').child(email[:email.index('@')]).remove()
+                database.child('users').child('staff').child(short_mail).remove()
 
         else:
             user_data['msg'] = "User does not exist."
