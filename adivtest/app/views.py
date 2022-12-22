@@ -31,16 +31,31 @@ def postLogin(request):
     except:
         message = "Invalid User! Please check email and password"
         return render(request,"login.html",{"message":message})
+
+    ser_data = database.child('users').get()
+    #----Saving user session id----
     session_id = user['idToken']
     request.session['uid']=str(session_id)
+    #----Saving user's email in the current session to access database in other pages
     request.session['email']=str(email)
-    user_data = database.child('users').child(email[:email.index('@')]).get().val()
 
-    if user_data['role'] == 1:
+    #----Checking user's role----
+    if email[:email.index('@')] in database.child('users').child('students').get().val():
+        user_data = database.child('users').child('students').child(email[:email.index('@')]).get().val()
+        request.session['role'] = 'students'
+    elif email[:email.index('@')] in database.child('users').child('managers').get().val():
+        user_data = database.child('users').child('managers').child(email[:email.index('@')]).get().val()
+        request.session['role'] = 'managers'
+    elif email[:email.index('@')] in database.child('users').child('staff').get().val():
+        user_data = database.child('users').child('staff').child(email[:email.index('@')]).get().val()
+        request.session['role'] = 'staff'
+
+    #----Rendering home page based on user's role----
+    if request.session['role'] == 'students':
         return render(request,"main_Student.html",user_data)
-    elif user_data['role'] == 2:
+    elif request.session['role'] == 'managers':
         return render(request,"main_Wmanager.html",user_data)
-    elif user_data['role'] == 3:
+    elif request.session['role'] == 'staff':
         return render(request,"main_ASM.html",user_data)
 
 def login_page(request):
@@ -63,22 +78,37 @@ def main_ASM(request):
 def create_user(request):
     #-----Getting current session user data-----#
     email = request.session['email']
-    user_data = database.child('users').child(email[:email.index('@')]).get().val()
+    user_data = database.child('users').child(request.session['role']).child(email[:email.index('@')]).get().val()
     #-----Getting current session user data-----#
-    users = database.child('users').get().val()
 
     full_name = "{} {}".format(request.POST.get('fname'),request.POST.get('lname'))
     num_id, role = int(request.POST.get('id')), int(request.POST.get('role'))
     email, password = request.POST.get('email'), request.POST.get('password')
 
-    if email[:email.index('@')] not in users:
-        user = authe.create_user_with_email_and_password(email, password)
-        database.child('users').child(email[0:email.index('@')]).set({
-            'idToken': user['idToken'],
-            'full_name': full_name,
-            'id': num_id,
-           'role': role,
-        })
+    if email[:email.index('@')] not in database.child('users').child('students').get().val() \
+    and email[:email.index('@')] not in database.child('users').child('staff').get().val() \
+    and email[:email.index('@')] not in database.child('users').child('managers').get().val():
+        if role == 1:
+            user = authe.create_user_with_email_and_password(email, password)
+            database.child('users').child('students').child(email[0:email.index('@')]).set({
+                'idToken': user['idToken'],
+                'full_name': full_name,
+                'id': num_id,
+            })
+        elif role == 2:
+            user = authe.create_user_with_email_and_password(email, password)
+            database.child('users').child('managers').child(email[0:email.index('@')]).set({
+                'idToken': user['idToken'],
+                'full_name': full_name,
+                'id': num_id,
+            })
+        elif role == 3:
+            user = authe.create_user_with_email_and_password(email, password)
+            database.child('users').child('staff').child(email[0:email.index('@')]).set({
+                'idToken': user['idToken'],
+                'full_name': full_name,
+                'id': num_id,
+            })
     else:
         user_data['msg'] = "User already exists!"
     
@@ -87,16 +117,31 @@ def create_user(request):
 def remove_user(request):
     #-----Getting current session user data-----#
     email = request.session['email']
-    user_data = database.child('users').child(email[:email.index('@')]).get().val()
+    user_data = database.child('users').child(request.session['role']).child(email[:email.index('@')]).get().val()
     #-----Getting current session user data-----#
 
     email = request.POST.get('email')
     if email != request.session['email']:
-        idToken = database.child('users').child(email[:email.index('@')]).child('idToken').get().val()
+        if email[:email.index('@')] in database.child('users').child('students').get().val():
+            idToken = database.child('users').child('students').child(email[:email.index('@')]).child('idToken').get().val()
+            role = 1
+        elif email[:email.index('@')] in database.child('users').child('managers').get().val():
+            idToken = database.child('users').child('managers').child(email[:email.index('@')]).child('idToken').get().val()
+            role = 2
+        elif email[:email.index('@')] in database.child('users').child('staff').get().val():
+            idToken = database.child('users').child('staff').child(email[:email.index('@')]).child('idToken').get().val()
+            role = 2
+            
         if idToken:
             authe.delete_user_account(idToken)
 
-            database.child('users').child(email[:email.index('@')]).remove()
+            if role == 1:
+                database.child('users').child('students').child(email[:email.index('@')]).remove()
+            elif role == 2:
+                database.child('users').child('managers').child(email[:email.index('@')]).remove()
+            elif role == 3:
+                database.child('users').child('staff').child(email[:email.index('@')]).remove()
+
         else:
             user_data['msg'] = "User does not exist."
     else:
