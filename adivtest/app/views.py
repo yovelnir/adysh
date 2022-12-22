@@ -61,30 +61,47 @@ def main_ASM(request):
     return render(request, 'main_ASM.html')
 
 def create_user(request):
+    #-----Getting current session user data-----#
+    email = request.session['email']
+    user_data = database.child('users').child(email[:email.index('@')]).get().val()
+    #-----Getting current session user data-----#
+    users = database.child('users').get().val()
+
     full_name = "{} {}".format(request.POST.get('fname'),request.POST.get('lname'))
     num_id, role = int(request.POST.get('id')), int(request.POST.get('role'))
     email, password = request.POST.get('email'), request.POST.get('password')
-    user = authe.create_user_with_email_and_password(email, password)
-    database.child('users').child(email[0:email.index('@')]).set({
-        'idToken': user['idToken'],
-        'full_name': full_name,
-        'id': num_id,
-        'role': role,
-    })
+
+    if email[:email.index('@')] not in users:
+        user = authe.create_user_with_email_and_password(email, password)
+        database.child('users').child(email[0:email.index('@')]).set({
+            'idToken': user['idToken'],
+            'full_name': full_name,
+            'id': num_id,
+           'role': role,
+        })
+    else:
+        user_data['msg'] = "User already exists!"
     
-    email = request.session['email']
-    user_data = database.child('users').child(email[:email.index('@')]).get().val()
     return render(request,"main_Wmanager.html", user_data)
 
 def remove_user(request):
-    email = request.POST.get('email')
-    idToken = database.child('users').child(email[:email.index('@')]).child('idToken').get().val()
-    authe.delete_user_account(idToken)
-
-    database.child('users').child(email[:email.index('@')]).remove()
-
+    #-----Getting current session user data-----#
     email = request.session['email']
     user_data = database.child('users').child(email[:email.index('@')]).get().val()
+    #-----Getting current session user data-----#
+
+    email = request.POST.get('email')
+    if email != request.session['email']:
+        idToken = database.child('users').child(email[:email.index('@')]).child('idToken').get().val()
+        if idToken:
+            authe.delete_user_account(idToken)
+
+            database.child('users').child(email[:email.index('@')]).remove()
+        else:
+            user_data['msg'] = "User does not exist."
+    else:
+        user_data['msg'] = "You cannot remove your self!"
+
     return render(request,"main_Wmanager.html", user_data)
 
     
