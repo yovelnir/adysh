@@ -236,3 +236,8 @@ def inventory_stock(request):
                 items.append((product_name,product_amount,product_serial,product_location,role)) 
                 
             return render(request, "inventory_stock_Manager.html", {'items':items})
+
+#----------------------------------------------US3 ASM order submition--------------------
+
+def submit_an_order_ASM(request):
+    return render(request,"submit_an_order_ASM.html")

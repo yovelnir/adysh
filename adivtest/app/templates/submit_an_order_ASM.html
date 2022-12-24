@@ -12,15 +12,17 @@
 
     <body>
             <div class="main_container">
-                </div class="imgcontainer">
+                </div class="imagcontainer">
                     <img src="{% static 'SCE_logo.png' %}" alt="Avatar" class="avatar" />
                 </div>
-            <div id="filter container">
-                <form action="" method="POST">  
-                    {% csrf_token %}
-                    <button class="btn_filter" type="submit" name="Order existing items" value="0"> Order existing items</button>
-                    <button class="btn_filter" type="submit" name="Order new items" value="1"> Order new items</button>
-                    <button class="btn_filter" type="submit" name="Order status" value="2"> Order status</button>
-                    
+                <div id="button_container">
+                    <form action="" method="POST">  
+                        {% csrf_token %}
+                        <button class="btn_filter" type="submit" name="Order existing items" value="0"> Order existing items</button>
+                        <button class="btn_filter" type="submit" name="Order new items" value="1"> Order new items</button>
+                        <button class="btn_filter" type="submit" name="Order status" value="2"> Order status</button>
+                    </form>   
+                </div>
             </div>
+            <div id="banner"><h3>ADYSH</h3></div>
     </body>
