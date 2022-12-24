@@ -5,11 +5,11 @@
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>main_ASM Page</title>
+  <link rel="stylesheet" href="{% static 'styles.css' %}">
+  <title>Main Page</title>
 </head> 
-<link rel="stylesheet" href="{% static 'styles.css' %}">
 <body> 
-  <a href="/"
+  <a href="{% url 'logout' %}"
       ><button type="submit" id="logoutbtn">
         <p>Logout</p>
       </button>
@@ -22,7 +22,8 @@
       <img src="{% static 'SCE_logo.png' %}" alt="Avatar" class="avatar" />
     </div>
     <div class="container">
-      <div class="tab"><h2 id="tab_text">Iventory Stock</h2></div>
+      <a href = "{% url 'inventory_stock_ASM' %}">
+      <div class="tab"><h2 id="tab_text">Inventory Stock</h2></div></a>
       <div class="tab"><h2 id="tab_text">Submit An Order</h2></div>
       <div class="tab"><h2 id="tab_text">Publish Requierments</h2></div>
     </div>
@@ -31,6 +32,3 @@
 </body>
 </html> 
 
-<!-- onclick="location.href='/adivtest/app/templates/main_Student'" 
-  for clickable div to another page 
--->

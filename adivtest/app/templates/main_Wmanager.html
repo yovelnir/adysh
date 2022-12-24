@@ -1,29 +1,149 @@
 {% load static %}
+{% if msg %}
+<script> alert('{{msg}}')</script>
+{% endif %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css'' %}" />
+    <script src="{% static 'js/bootstrap.min.js' %}"></script>  
+    <link rel="stylesheet" href="{% static 'create_user.css' %}" /> 
     <link rel="stylesheet" href="{% static 'styles.css' %}" />
-    <link rel="stylesheet" href="{% static 'main_Wmanager.css' %}" />
     <title>Main Page</title>
-</head>
+</head>  
+<style> 
+
+#tab_text{ 
+  font-weight: 700;
+  font-size: 24px; 
+} 
+#logoutbtn{ 
+  margin-left: 16px; 
+  padding-top: 12px;
+  font-size: 14px;
+} 
+
+</style>
+
 <body>
-    <a href="/"
+  
+    <a href="{% url 'logout' %}"
       ><button type="submit" id="logoutbtn"><p>Logout</p></button></a
     > 
+  
     <br>
     <div id="user_details">Connect as: {{full_name}}</div>
     <div class="imgcontainer">
       <img src="{% static 'SCE_logo.png' %}" alt="Avatar" class="avatar" />
     </div>
     <div class="container">
-      <div class="tab"><h2 id="tab_text">Manage Inventory Menu</h2></div>
-      <div class="tab"><h2 id="tab_text">Manage Orders</h2></div>
-      <div class="tab"><h2 id="tab_text">Manage Users</h2></div>
-      <div class="tab"><h2 id="tab_text">PickUp Schedule</h2></div>
+   
+      
+      
+      <div class="tab"><a href="{% url 'inventory_stock_Manager' %}"><h2 id="tab_text">Manage Inventory</h2></a></div>
+      
+      
+      
+      <div class="tab" ><h2 id="tab_text">Manage Orders</h2></div>
+      <div class="tab" type="button" data-bs-toggle="modal" data-bs-target="#manageUsers"><h2 id="tab_text">Manage Users</h2></div></button>
+      <div class="tab" ><h2 id="tab_text">PickUp Schedule</h2></div>
     </div>
     <div id="banner"><h3>ADYSH</h3></div>
+
+<!--User Management Modal -->
+<div class="modal fade" id="manageUsers" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="manageUsersLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="manageUsersLabel">User Management</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <!--Create User Button-->
+        <div class="btn btn-primary btn-lg" type="button" data-bs-toggle="modal" data-bs-target="#CreateUser"><h3 class="fs-2">Create User</h3></div>
+        <!--Remove User Button-->
+        <div class="btn btn-primary btn-lg" type="button" data-bs-toggle="modal" data-bs-target="#RemoveUser"><h3 class="fs-2">Remove User</h3></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!--User Management Modal -->
+
+<!--Create User Modal-->
+<div class="modal fade" id="CreateUser" aria-hidden="true" aria-labelledby="exampleModalToggleLabel" tabindex="-1" data-bs-backdrop="static">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="createUserLabel">Create new user:</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form class ="create_form" action="{% url 'create_user' %}" method="POST">
+        {% csrf_token %}
+        <div class="modal-body">
+
+          <!--First name text input-->
+          <label for="fname">First name:</label>
+          <input class="text-input" type="text" id="fname" name="fname" required><br>
+
+          <!--Last name text input-->
+          <label for="lname">Last name:</label>
+          <input class="text-input" type="text" id="lname" name="lname" required><br>
+
+          <!--ID text input--> 
+          <label for="id">ID:</label>
+          <input class="text-input" type="text" onkeypress="return (event.charCode !=8 && event.charCode ==0 || (event.charCode >= 48 && event.charCode <= 57))" id="id" name="id" minlength="9" maxlength="9" required><br>
+
+          <!--Email text input-->
+          <label for="email">Email:</label>
+          <input class="text-input" type="email" id="email" name="email" required><br>
+
+          <!--Password text input-->
+          <label for="password">Password:</label>
+          <input class="text-input" type="text" id="password" name="password" required><br>
+
+          <!--Role select option input-->
+          <label>User role:</label><br>
+          <select style="width:100%;" id="role" name="role">
+            <option value="1">Student</option>
+            <option value="3">Academic Staff Member</option>
+            <option value="2">Warehouse Manager</option>
+          </select><br>
+
+          <!--Submit to create new user-->
+          <button type="submit" class="submit_button">Create User</button>
+
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+<!--Create User Modal-->
+
+<!--Remove User modal-->
+<div class="modal fade" id="RemoveUser" aria-hidden="true" aria-labelledby="exampleModalToggleLabel" tabindex="-1" data-bs-backdrop="static">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="removeUserLabel">Remove user</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form class ="create_form" action="{% url 'delete_user' %}" method="POST">
+        {% csrf_token %}
+        <div class="modal-body">
+          <div><h3>Email of user:</h3></div>
+          <input class="text-input" type="email" id="email" name="email" required><br>
+
+          <button type="submit" class="submit_button" onclick="return confirm('Are you sure you want to remove this user?')">Remove User</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
 </body>
 </html>

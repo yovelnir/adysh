@@ -1,0 +1,56 @@
+
+/* this file should be used in warehouse manager table as well */
+body{ 
+    background-color: rgb(236, 234, 234);
+}
+.imgcontainer {
+    text-align: center;
+    margin: 24px 0 32px 0;
+    display: flex;
+    justify-content: center;
+  }
+
+table th, td {
+    border: 1px solid; 
+    height: 40%; 
+    
+}  
+tr, td{ 
+    padding: 8px; 
+
+} 
+.main_container{ 
+    padding-top: 8px;
+    margin-top: 32px; 
+    margin-left: auto; 
+    margin-right: auto; 
+    background-color: whitesmoke; 
+    width: 70%; 
+    height: 550px;
+}
+table{  
+    margin-top: 0;
+    margin-left: auto; 
+    margin-right: auto; 
+    width: 50%; 
+}
+#filter_container{ 
+    margin-top: 32px;  
+    text-align: center;  
+    
+}
+.btn_filter{ 
+    display: inline; 
+    background-color: #04AA6D;
+    color: white;
+    padding: 14px 20px;
+    margin: 8px 0;
+    border: none; 
+    border-radius: 5px;
+    cursor: pointer; 
+}  
+
+#aboutToRunOut{ 
+    color: red;
+}
+
