@@ -1,0 +1,54 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static 'styles.css' %}">
+    <link rel="stylesheet" href="{% static 'inventory_stock.css' %}">
+    <title>View Stock</title>
+</head>
+<body>
+     
+  
+    <div class="main_container">
+        <div class="imgcontainer">
+          <img src="{% static 'SCE_logo.png' %}" alt="Avatar" class="avatar" />
+        </div>
+        
+        
+        <div id="filter_container"> 
+          <form action="" method="POST">
+            {% csrf_token %}
+            <button class="btn_filter" type="submit" name="ShowAll" value="0">Show All</button> 
+            <button class="btn_filter" type="submit" name ="InStock" value="1">In Stock</button>
+            <button class="btn_filter" type="submit" name="OutOfStock" value="2">Out Of Stock</button>
+        
+        </div> 
+          <table>
+              <thead>
+                <tr>
+                  <th>Serial Number</th>
+                  <th>Product Name</th>
+                  <th>Quantity</th> 
+                  <th>Location</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for product_name,product_amount,product_serial,product_location,role in items %} 
+                {% if product_name != None %}
+                <tr>
+                  <td>{{ product_serial }}</td> 
+                  <td>{{ product_name }}</td> 
+                      {% if product_amount < 5 %}
+                      <td id = 'aboutToRunOut'>{{ product_amount }}</td> 
+                      {% else %} 
+                      <td>{{product_amount}}</td> 
+                      {% endif %} 
+                      <td>{{ product_location }}</td>
+                  </tr>
+                  {% endif %}
+                  {% endfor %}
+</body>
+</html>

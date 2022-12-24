@@ -26,8 +26,9 @@
           <button class="btn_filter" type="submit" name ="InStock" value="1">In Stock</button>
           <button class="btn_filter" type="submit" name="OutOfStock" value="2">Out Of Stock</button>
       
-      </div>
-
+      </div> 
+      <!-- Table for academic staff members -->
+        
         <table>
             <thead>
               <tr>
@@ -36,7 +37,7 @@
               </tr>
             </thead>
             <tbody>
-              {% for product_name,product_amount in items %} 
+              {% for product_name,product_amount,role in items %} 
               {% if product_name != None %}
               <tr>
                 <td>{{ product_name }}</td> 
@@ -49,8 +50,10 @@
                 {% endif %}
                 {% endfor %}
             </tbody>
-          </table>
+          </table> 
+     
           
+         
           <div id="banner"><h3>ADYSH</h3></div>
       </div>
     </form>
