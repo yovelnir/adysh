@@ -95,4 +95,26 @@ a{
   margin-top: -8px;
 } 
 
+.alert {
+  margin: auto;
+  padding: 20px;
+  width: 50%;
+  background-color: #04AA6D;
+  color: white;
+  text-align: center;
+}
 
+.alertCloseBtn {
+  margin-left: 15px;
+  color: white;
+  font-weight: bold;
+  float: right;
+  font-size: 22px;
+  line-height: 20px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.alertCloseBtn:hover {
+  color: black;
+}

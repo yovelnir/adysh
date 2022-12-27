@@ -1,7 +1,4 @@
 {% load static %}
-{% if msg %}
-<script> alert('{{msg}}')</script>
-{% endif %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -39,8 +36,13 @@
     <div class="imgcontainer">
       <img src="{% static 'SCE_logo.png' %}" alt="Avatar" class="avatar" />
     </div>
+    {% if msg %}
+    <div class="alert">
+      <span class="alertCloseBtn" onclick="this.parentElement.style.display='none';">&times;</span> 
+      <h3>{{msg}}</h3>
+    </div>
+      {% endif %}
     <div class="container">
-   
       
       
       <div class="tab"><a href="{% url 'inventory_stock_Manager' %}"><h2 id="tab_text">Manage Inventory</h2></a></div>
@@ -83,7 +85,7 @@
         <h1 class="modal-title fs-5" id="createUserLabel">Create new user:</h1>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
-      <form class ="create_form" action="{% url 'create_user' %}" method="POST">
+      <form id="create_form" class ="create_form" action="{% url 'create_user' %}" method="POST" onsubmit="submitBtn.disabled=true; submitBtn.value='Creating User...'">
         {% csrf_token %}
         <div class="modal-body">
 
@@ -105,7 +107,7 @@
 
           <!--Password text input-->
           <label for="password">Password:</label>
-          <input class="text-input" type="text" id="password" name="password" required><br>
+          <input class="text-input" type="text" id="password" name="password" minlength="6" required><br>
 
           <!--Role select option input-->
           <label>User role:</label><br>
@@ -116,7 +118,7 @@
           </select><br>
 
           <!--Submit to create new user-->
-          <input type="submit" value="Create User" class="submit_button" onclick="submit.this.disabled=true;"/>
+          <input type="submit" name="submitBtn" value="Create User" class="submit_button"/>
 
         </div>
       </form>
@@ -133,13 +135,13 @@
         <h1 class="modal-title fs-5" id="removeUserLabel">Remove user</h1>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
-      <form class ="create_form" action="{% url 'delete_user' %}" method="POST">
+      <form class ="create_form" action="{% url 'delete_user' %}" method="POST" onsubmit="removeBtn.disabled=true; removeBtn.value='Removing User...'">
         {% csrf_token %}
         <div class="modal-body">
           <div><h3>Email of user:</h3></div>
           <input class="text-input" type="email" id="email" name="email" required><br>
 
-          <button type="submit" class="submit_button" onclick="return confirm('Are you sure you want to remove this user?')">Remove User</button>
+          <input id="removeBtn" type="submit" class="submit_button" value="Remove User" onclick="return confirm('Are you sure you want to remove this user?')"></input>
         </div>
       </form>
     </div>
