@@ -24,21 +24,27 @@ authe = firebase.auth()
 database = firebase.database()
 
 def postLogin(request):
-    email = request.POST.get('email')
-    pasw = request.POST.get('pass')
-    try:
-        user = authe.sign_in_with_email_and_password(email,pasw)
-    except:
-        message = "Invalid User! Please check email and password"
-        return render(request,"login.html",{"message":message})
+    if request.session.get('uid'):
+        email = request.session['email']
+        user_data = database.child('users').child(request.session['role']).child(email[:email.index('@')]).get().val()
+        short_mail = email[:email.index("@")]
+        user_data['msg'] = request.session['msg']
+    else:
+        email = request.POST.get('email')
+        pasw = request.POST.get('pass')
+        try:
+            user = authe.sign_in_with_email_and_password(email,pasw)
+        except:
+            message = "Invalid User! Please check email and password"
+            return render(request,"login.html",{"message":message})
 
-    ser_data = database.child('users').get()
-    #----Saving user session id----
-    session_id = user['idToken']
-    request.session['uid']=str(session_id)
-    #----Saving user's email in the current session to access database in other pages
-    request.session['email']=str(email)
-    short_mail = email[:email.index('@')]
+        ser_data = database.child('users').get()
+        #----Saving user session id----
+        session_id = user['idToken']
+        request.session['uid']=str(session_id)
+        #----Saving user's email in the current session to access database in other pages
+        request.session['email']=str(email)
+        short_mail = email[:email.index('@')]
 
     #----Checking user's role----
     if short_mail in database.child('users').child('students').get().val():
@@ -121,6 +127,7 @@ def remove_user(request):
     email = request.session['email']
     user_data = database.child('users').child(request.session['role']).child(email[:email.index('@')]).get().val()
     #-----Getting current session user data-----#
+    idToken = None
 
     email = request.POST.get('email')
     if email != request.session['email']:
@@ -146,11 +153,11 @@ def remove_user(request):
                 database.child('users').child('staff').child(short_mail).remove()
 
         else:
-            user_data['msg'] = "User does not exist."
+            request.session['msg'] = "User does not exist."
     else:
-        user_data['msg'] = "You cannot remove your self!"
+        request.session['msg'] = "You cannot remove your self!"
 
-    return render(request,"main_Wmanager.html", user_data)
+    return redirect('/home')
 
     
 
