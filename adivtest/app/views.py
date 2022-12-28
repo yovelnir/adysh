@@ -7,6 +7,7 @@ from django.db import IntegrityError
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib import messages
+from django.urls import reverse
 
 
 config = {
@@ -24,21 +25,25 @@ authe = firebase.auth()
 database = firebase.database()
 
 def postLogin(request):
-    email = request.POST.get('email')
-    pasw = request.POST.get('pass')
-    try:
-        user = authe.sign_in_with_email_and_password(email,pasw)
-    except:
-        message = "Invalid User! Please check email and password"
-        return render(request,"login.html",{"message":message})
+    if request.session.get('uid'):
+        email = request.session['email']
+        short_mail = email[:email.index("@")]
+    else:
+        email = request.POST.get('email')
+        pasw = request.POST.get('pass')
+        try:
+            user = authe.sign_in_with_email_and_password(email,pasw)
+        except:
+            message = "Invalid User! Please check email and password"
+            return render(request,"login.html",{"message":message})
 
-    ser_data = database.child('users').get()
-    #----Saving user session id----
-    session_id = user['idToken']
-    request.session['uid']=str(session_id)
-    #----Saving user's email in the current session to access database in other pages
-    request.session['email']=str(email)
-    short_mail = email[:email.index('@')]
+        ser_data = database.child('users').get()
+        #----Saving user session id----
+        session_id = user['idToken']
+        request.session['uid']=str(session_id)
+        #----Saving user's email in the current session to access database in other pages
+        request.session['email']=str(email)
+        short_mail = email[:email.index('@')]
 
     #----Checking user's role----
     if short_mail in database.child('users').child('students').get().val():
@@ -51,6 +56,10 @@ def postLogin(request):
         user_data = database.child('users').child('staff').child(short_mail).get().val()
         request.session['role'] = 'staff'
 
+    if request.session.get('msg'):
+        user_data['msg'] = request.session.get('msg')
+        del request.session['msg']
+
     #----Rendering home page based on user's role----
     if request.session['role'] == 'students':
         return render(request,"main_Student.html",user_data)
@@ -60,15 +69,19 @@ def postLogin(request):
         return render(request,"main_ASM.html",user_data)
 
 def login_page(request):
+    #----Checking if there is already a user logged in----
+    if request.session.get('uid'):
+        return redirect('/home')
+
     return render(request, 'login.html')
 
 def logout(request):
     try:
         del request.session['uid']
+        message = 'Successfully Logged Out!'
     except:
         pass
-    render(request, "login.html")
-    return HttpResponseRedirect('/')
+    return render(request, "login.html", {"message":message})
 
 def main_Student(request): 
     return render(request, 'main_Student.html')
@@ -79,7 +92,6 @@ def main_ASM(request):
 def create_user(request):
     #-----Getting current session user data-----#
     email = request.session['email']
-    user_data = database.child('users').child(request.session['role']).child(email[:email.index('@')]).get().val()
     #-----Getting current session user data-----#
 
     full_name = "{} {}".format(request.POST.get('fname'),request.POST.get('lname'))
@@ -93,28 +105,29 @@ def create_user(request):
         if role == 1:
             user = authe.create_user_with_email_and_password(email, password)
             database.child('users').child('students').child(short_mail).set({
-                'idToken': user['idToken'],
                 'full_name': full_name,
                 'id': num_id,
+                'password': password,
             })
         elif role == 2:
             user = authe.create_user_with_email_and_password(email, password)
             database.child('users').child('managers').child(short_mail).set({
-                'idToken': user['idToken'],
                 'full_name': full_name,
                 'id': num_id,
+                'password': password,
             })
         elif role == 3:
             user = authe.create_user_with_email_and_password(email, password)
             database.child('users').child('staff').child(short_mail).set({
-                'idToken': user['idToken'],
                 'full_name': full_name,
                 'id': num_id,
+                'password': password,
             })
+        request.session['msg'] = 'User {} was created successfully!'.format(full_name)
     else:
-        user_data['msg'] = "User already exists!"
+        request.session['msg'] = 'User already exists!'
     
-    return render(request,"main_Wmanager.html", user_data)
+    return redirect('/home')
 
 def remove_user(request):
     #-----Getting current session user data-----#
@@ -124,19 +137,24 @@ def remove_user(request):
 
     email = request.POST.get('email')
     if email != request.session['email']:
+        password = None
         short_mail = email[:email.index('@')]
         if short_mail in database.child('users').child('students').get().val():
-            idToken = database.child('users').child('students').child(short_mail).child('idToken').get().val()
+            full_name = database.child('users').child('students').child(short_mail).child('full_name').get().val()
+            password = database.child('users').child('students').child(short_mail).child('password').get().val()
             role = 1
         elif short_mail in database.child('users').child('managers').get().val():
-            idToken = database.child('users').child('managers').child(short_mail).child('idToken').get().val()
+            full_name = database.child('users').child('managers').child(short_mail).child('full_name').get().val()
+            password = database.child('users').child('managers').child(short_mail).child('password').get().val()
             role = 2
         elif short_mail in database.child('users').child('staff').get().val():
-            idToken = database.child('users').child('staff').child(short_mail).child('idToken').get().val()
+            full_name = database.child('users').child('staff').child(short_mail).child('full_name').get().val()
+            password = database.child('users').child('staff').child(short_mail).child('password').get().val()
             role = 3
             
-        if idToken:
-            authe.delete_user_account(idToken)
+        if password:
+            user = authe.sign_in_with_email_and_password(email,password)
+            authe.delete_user_account(user['idToken'])
 
             if role == 1:
                 database.child('users').child('students').child(short_mail).remove()
@@ -144,13 +162,13 @@ def remove_user(request):
                 database.child('users').child('managers').child(short_mail).remove()
             elif role == 3:
                 database.child('users').child('staff').child(short_mail).remove()
-
+            request.session['msg'] = 'User {} was removed successfully!'.format(full_name)
         else:
-            user_data['msg'] = "User does not exist."
+            request.session['msg'] = "User does not exist!"
     else:
-        user_data['msg'] = "You cannot remove your self!"
+        request.session['msg'] = 'You cannot delete yourself!'
 
-    return render(request,"main_Wmanager.html", user_data)
+    return redirect('/home')
 
     
 
