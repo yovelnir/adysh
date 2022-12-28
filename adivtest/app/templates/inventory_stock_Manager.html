@@ -17,15 +17,27 @@
           <img src="{% static 'SCE_logo.png' %}" alt="Avatar" class="avatar" />
         </div>
         
-        
+        <div id="btn_top">
+
         <div id="filter_container"> 
           <form action="" method="POST">
             {% csrf_token %}
             <button class="btn_filter" type="submit" name="ShowAll" value="0">Show All</button> 
             <button class="btn_filter" type="submit" name ="InStock" value="1">In Stock</button>
-            <button class="btn_filter" type="submit" name="OutOfStock" value="2">Out Of Stock</button>
-        
+            <button class="btn_filter" type="submit" name="OutOfStock" value="2">Out Of Stock</button> 
+          </form>
+           <!-- dropdown menu -->
+            <span id="dropdown">
+              <button class="dropbtn">Modify item</button>
+              <div class="dropdown-content">
+                <a class="button" href="#popup1">Edit Item</a>
+                <a class="dropdown_options" href="#">Link 2</a>
+                <a class="dropdown_options" href="#">Link 3</a> 
+                
+            </div>
+          </span>
         </div> 
+      </div> 
           <table>
               <thead>
                 <tr>
@@ -51,7 +63,55 @@
                   {% endif %}
                   {% endfor %}
             </tbody>  
-            </table> 
+            </table>  
+
+            <div id="popup1" class="overlay">
+              <div class="popup">
+                <h2>Edit Item</h2>
+                <p>Enter Serial Number and edit the fields you would like.</p>
+                <a class="close" href="#">&times;</a>
+                <div class="content">
+                  <form action="" method="POST"> 
+                    {% csrf_token %}
+                    <div class="fill_fields"> 
+                        <h3>Serial:</h3><input 
+                        type="number"
+                        class="fields"
+                        placeholder="Enter Serial Number"
+                        name="serial_number"
+                        required>
+                    </div>
+                    <div class="fill_fields"> 
+                      <h3>Product Name:</h3><input 
+                      type="text"
+                      class="fields"
+                      placeholder="Enter Product Name"
+                      name="product_name"
+                     >
+                  </div>
+                  <div class="fill_fields"> 
+                    <h3>Quantity:</h3><input 
+                    type="number"
+                    class="fields"
+                    placeholder="Enter Quantity"
+                    name="quantity"
+                   >
+                </div>
+                <div class="fill_fields"> 
+                  <h3>Location:</h3><input 
+                  type="text"
+                  class="fields"
+                  placeholder="Enter Location"
+                  name="product_location"
+                 >
+              </div>
+              <div id="btn_save_container"> 
+                <button id="btn_save" type="submit" name="btn_save_edit" >Save</button>
+            </div>
+                  </form>
+                </div>
+              </div>
+            </div>
             
             <div id="banner"><h3>ADYSH</h3></div>
         </div>

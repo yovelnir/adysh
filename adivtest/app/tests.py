@@ -84,9 +84,10 @@ class ManageUsers(TestCase):
         self.assertNotEqual(user['idToken'] ,idToken)
 
 class ViewInventory(TestCase):
-    def test_Inventory_Is_Empty(self):
+    def test_Inventory_Is_Empty_Staff(self):
             Prod=db.child('Inventory').child('1').child('Quantity').get().val()
             self.assertNotEqual(Prod,None)
 
-    
-
+    def test_Inventory_Is_Equal_Manager(self): 
+        #need to be implemented !
+        return False

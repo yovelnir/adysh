@@ -162,11 +162,13 @@ def inventory_stock(request):
     if 'InStock' in request.POST: 
         filter = request.POST['InStock'] 
     elif 'OutOfStock' in request.POST:
-        filter = request.POST['OutOfStock']
+        filter = request.POST['OutOfStock'] 
+    elif 'btn_save_edit' in request.POST: 
+        editInventory(request)
     else: 
         filter = '0'
-    items = list()
-    
+    items = list() 
+
 #======================================= table for academic staff member ======================================
     if role == 'staff':
     #========InStock   
@@ -222,7 +224,8 @@ def inventory_stock(request):
                         product_serial = i.key() 
                         product_location = database.child('Inventory').child(i.key()).child('Physical_Location').get().val()
                         product_name = database.child('Inventory').child(i.key()).child('product_name').get().val()
-                        product_amount = database.child('Inventory').child(i.key()).child('Quantity').get().val()
+                        product_amount = database.child('Inventory').child(i.key()).child('Quantity').get().val() 
+
                         items.append((product_name,product_amount,product_serial,product_location,role))
                         
             return render(request, "inventory_stock_Manager.html", {'items':items})  
@@ -236,3 +239,65 @@ def inventory_stock(request):
                 items.append((product_name,product_amount,product_serial,product_location,role)) 
                 
             return render(request, "inventory_stock_Manager.html", {'items':items})
+
+
+
+def editInventory(request):  
+    inventory = database.child('Inventory') #for short path 
+    role = request.session['role'] #save role for next render 
+    serial_number = request.POST['serial_number'] 
+    items = list()
+    
+
+    #set the fields to user requset
+    if request.POST['product_name'] != "":
+        new_product_name = request.POST['product_name'] 
+    else: 
+        new_product_name = inventory.child(serial_number).child('product_name').get().val()
+    
+    if request.POST['quantity'] != "":
+        new_quantity = request.POST['quantity']  
+    else: 
+        new_quantity = inventory.child(serial_number).child('Quantity').get().val()
+
+    if request.POST['product_location'] != "":
+        new_product_location = request.POST['product_location']  
+    else: 
+        new_product_location = inventory.child(serial_number).child('Physical_Location').get().val()
+    
+    # print(serial_number) 
+    # print(new_product_location) 
+    # print(new_product_name) 
+    # print(new_quantity)
+
+    # updating DB if the user sent a request
+    if new_product_name == None: 
+        inventory.child(serial_number).update({'product_name': new_product_name})
+    
+    if new_product_location != None: 
+        inventory.child(serial_number).update({'Physical_Location': new_product_location}) 
+
+    if new_quantity != None: 
+        inventory.child(serial_number).update({'Quantity': new_quantity}) 
+
+    # database.ref().child('Inventory/'+str(serial_number)).set({ 
+    #     'Physical_Location' : new_product_location,
+    #     'product_name' : new_product_name,
+    #     'Quantity' : new_quantity
+    # })
+
+    for i in inventory.each():
+                product_serial = i.key() 
+                product_location = inventory.child(i.key()).child('Physical_Location').get().val()
+                product_name = inventory.child(i.key()).child('product_name').get().val()
+                product_amount = inventory.child(i.key()).child('Quantity').get().val()
+                items.append((product_name,product_amount,product_serial,product_location,role)) 
+                
+    return render(request,"inventory_stock_Manager.html", {'items':items})
+
+    
+
+
+
+
+
