@@ -64,8 +64,10 @@ def postLogin(request):
     if request.session['role'] == 'students':
         return render(request,"main_Student.html",user_data)
     elif request.session['role'] == 'managers':
+        user_data['courses'] = database.child('Courses').get().val()
         return render(request,"main_Wmanager.html",user_data)
     elif request.session['role'] == 'staff':
+        user_data['courses'] = database.child('Courses').get().val()
         return render(request,"main_ASM.html",user_data)
 
 def login_page(request):
