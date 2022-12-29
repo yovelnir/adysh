@@ -31,6 +31,7 @@ def postLogin(request):
     else:
         email = request.POST.get('email')
         pasw = request.POST.get('pass')
+        
         try:
             user = authe.sign_in_with_email_and_password(email,pasw)
         except:
@@ -173,19 +174,26 @@ def remove_user(request):
     
 
 def inventory_stock(request):
+    items = list()  
     role = request.session['role'] #role to know which table to render
-    
     inventory = database.child('Inventory').get()
+    filter = '0'
+    bad_serial_token = "" 
+
+
 
     if 'InStock' in request.POST: 
         filter = request.POST['InStock'] 
     elif 'OutOfStock' in request.POST:
         filter = request.POST['OutOfStock'] 
     elif 'btn_save_edit' in request.POST: 
-        editInventory(request)
-    else: 
-        filter = '0'
-    items = list() 
+        editInventory(request)             
+    elif 'btn_remove_edit' in request.POST: 
+        removeInventory(request) 
+    
+    if request.session['bad_serial'] == -1:
+        request.session['bad_serial'] = 0
+        bad_serial_token = 'Serial Number does not exist!'
 
 #======================================= table for academic staff member ======================================
     if role == 'staff':
@@ -226,7 +234,7 @@ def inventory_stock(request):
         if filter == '1': 
             for i in inventory.each(): 
                 if database.child('Inventory').child(i.key()).child('Quantity').get().val() is not None:
-                    if database.child('Inventory').child(i.key()).child('Quantity').get().val() > 0:
+                    if int(database.child('Inventory').child(i.key()).child('Quantity').get().val()) > 0:
                         product_serial = i.key() 
                         product_location = database.child('Inventory').child(i.key()).child('Physical_Location').get().val()
                         product_name = database.child('Inventory').child(i.key()).child('product_name').get().val()
@@ -238,7 +246,7 @@ def inventory_stock(request):
         if filter == '2':
             for i in inventory.each(): 
                 if database.child('Inventory').child(i.key()).child('Quantity').get().val() is not None:
-                    if database.child('Inventory').child(i.key()).child('Quantity').get().val() == 0: 
+                    if int(database.child('Inventory').child(i.key()).child('Quantity').get().val()) == 0: 
                         product_serial = i.key() 
                         product_location = database.child('Inventory').child(i.key()).child('Physical_Location').get().val()
                         product_name = database.child('Inventory').child(i.key()).child('product_name').get().val()
@@ -256,63 +264,68 @@ def inventory_stock(request):
                 product_amount = database.child('Inventory').child(i.key()).child('Quantity').get().val()
                 items.append((product_name,product_amount,product_serial,product_location,role)) 
                 
-            return render(request, "inventory_stock_Manager.html", {'items':items})
+            return render(request, "inventory_stock_Manager.html", {'items':items, 'error': bad_serial_token})
 
 
 
-def editInventory(request):  
-    inventory = database.child('Inventory') #for short path 
-    role = request.session['role'] #save role for next render 
+def editInventory(request):
+
+    inventory = database.child('Inventory').get() 
     serial_number = request.POST['serial_number'] 
-    items = list()
+    serial_flag = False 
+      
+    # ======= check if serial number exist 
+    for key in inventory.each(): 
+        if int(serial_number) == key.key(): 
+            serial_flag = True 
     
+    if serial_flag == False: 
+        request.session['bad_serial'] = -1 
+      
+    else:
+        # ======= set the fields to user requset
+        if request.POST['product_name'] != "":
+            new_product_name = request.POST['product_name'] 
+        else: 
+            new_product_name = database.child('Inventory').child(serial_number).child('product_name').get().val()
+        
+        if request.POST['quantity'] != "":
+            new_quantity = request.POST['quantity']  
+        else: 
+            new_quantity = database.child('Inventory').child(serial_number).child('Quantity').get().val()
 
-    #set the fields to user requset
-    if request.POST['product_name'] != "":
-        new_product_name = request.POST['product_name'] 
-    else: 
-        new_product_name = inventory.child(serial_number).child('product_name').get().val()
+        if request.POST['product_location'] != "":
+            new_product_location = request.POST['product_location']  
+        else: 
+            new_product_location = database.child('Inventory').child(serial_number).child('Physical_Location').get().val()
+        
+
+        # =========== updating DB      
+        database.child('Inventory').child(serial_number).update({'product_name': new_product_name})
+        database.child('Inventory').child(serial_number).update({'Physical_Location': new_product_location})  
+        database.child('Inventory').child(serial_number).update({'Quantity': int(new_quantity)}) 
+                    
+        return render(request,"inventory_stock_Manager.html")
+
+
     
-    if request.POST['quantity'] != "":
-        new_quantity = request.POST['quantity']  
-    else: 
-        new_quantity = inventory.child(serial_number).child('Quantity').get().val()
+def removeInventory(request): 
 
-    if request.POST['product_location'] != "":
-        new_product_location = request.POST['product_location']  
-    else: 
-        new_product_location = inventory.child(serial_number).child('Physical_Location').get().val()
+    inventory = database.child('Inventory').get() 
+    serial_number = request.POST['serial_number'] 
+    serial_flag = False 
+      
+    # ======= check if serial number exist 
+    for key in inventory.each(): 
+        if serial_number == key.key(): 
+            serial_flag = True
     
-    # print(serial_number) 
-    # print(new_product_location) 
-    # print(new_product_name) 
-    # print(new_quantity)
+    if serial_flag == False: 
+        request.session['bad_serial'] = -1  
 
-    # updating DB if the user sent a request
-    if new_product_name == None: 
-        inventory.child(serial_number).update({'product_name': new_product_name})
-    
-    if new_product_location != None: 
-        inventory.child(serial_number).update({'Physical_Location': new_product_location}) 
-
-    if new_quantity != None: 
-        inventory.child(serial_number).update({'Quantity': new_quantity}) 
-
-    # database.ref().child('Inventory/'+str(serial_number)).set({ 
-    #     'Physical_Location' : new_product_location,
-    #     'product_name' : new_product_name,
-    #     'Quantity' : new_quantity
-    # })
-
-    for i in inventory.each():
-                product_serial = i.key() 
-                product_location = inventory.child(i.key()).child('Physical_Location').get().val()
-                product_name = inventory.child(i.key()).child('product_name').get().val()
-                product_amount = inventory.child(i.key()).child('Quantity').get().val()
-                items.append((product_name,product_amount,product_serial,product_location,role)) 
-                
-    return render(request,"inventory_stock_Manager.html", {'items':items})
-
+    else:  
+        database.child('Inventory').child(serial_number).remove() 
+        return render(request,"inventory_stock_Manager.html")
     
 
 
