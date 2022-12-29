@@ -68,6 +68,7 @@ def postLogin(request):
         return render(request,"main_Wmanager.html",user_data)
     elif request.session['role'] == 'staff':
         user_data['courses'] = database.child('Courses').get().val()
+        user_data['students'] = database.child('users').child('students').get().val()
         return render(request,"main_ASM.html",user_data)
 
 def login_page(request):
@@ -105,26 +106,39 @@ def create_user(request):
     and short_mail not in database.child('users').child('staff').get().val() \
     and short_mail not in database.child('users').child('managers').get().val():
         if role == 1:
-            user = authe.create_user_with_email_and_password(email, password)
+            #----Creating Student User in Database----#
+            if request.POST.getlist('courses'):
+                courses = request.POST.getlist('courses')
+            else:
+                courses = None
+            authe.create_user_with_email_and_password(email, password)
             database.child('users').child('students').child(short_mail).set({
                 'full_name': full_name,
                 'id': num_id,
                 'password': password,
             })
+            if courses:
+                print(courses)
+                database.child('users').child('students').child(short_mail).child('courses').set(courses)
+            #----Creating Student User in Database----#
         elif role == 2:
-            user = authe.create_user_with_email_and_password(email, password)
+            #----Creating Warehouse Manager User in Database----#
+            authe.create_user_with_email_and_password(email, password)
             database.child('users').child('managers').child(short_mail).set({
                 'full_name': full_name,
                 'id': num_id,
                 'password': password,
             })
+            #----Creating Warehouse Manager User in Database----#
         elif role == 3:
-            user = authe.create_user_with_email_and_password(email, password)
+            #----Creating Academic Staff Member User in Database----#
+            authe.create_user_with_email_and_password(email, password)
             database.child('users').child('staff').child(short_mail).set({
                 'full_name': full_name,
                 'id': num_id,
                 'password': password,
             })
+            #----Creating Academic Staff Member User in Database----#
         request.session['msg'] = 'User {} was created successfully!'.format(full_name)
     else:
         request.session['msg'] = 'User already exists!'
@@ -139,25 +153,39 @@ def remove_user(request):
 
     email = request.POST.get('email')
     if email != request.session['email']:
+        #----Checking which role is trying to remove a user ASM or WM----#
+        if request.POST.get('staff'):
+            flag = 0
+        else:
+            flag = 1   
+        
         password = None
         short_mail = email[:email.index('@')]
+
         if short_mail in database.child('users').child('students').get().val():
+            #----Checking if user is under Students in database----#
             full_name = database.child('users').child('students').child(short_mail).child('full_name').get().val()
             password = database.child('users').child('students').child(short_mail).child('password').get().val()
             role = 1
-        elif short_mail in database.child('users').child('managers').get().val():
+        elif short_mail in database.child('users').child('managers').get().val() and flag:
+            #----Checking if user is under Warehouse Manager in database----#
             full_name = database.child('users').child('managers').child(short_mail).child('full_name').get().val()
             password = database.child('users').child('managers').child(short_mail).child('password').get().val()
             role = 2
-        elif short_mail in database.child('users').child('staff').get().val():
+        elif short_mail in database.child('users').child('staff').get().val() and flag:
+            #----Checking if user is under Academic Staff Members in database----#
             full_name = database.child('users').child('staff').child(short_mail).child('full_name').get().val()
             password = database.child('users').child('staff').child(short_mail).child('password').get().val()
             role = 3
             
         if password:
+            #----If user exists under one of the roles in the database----#
+            #----Loging in to the user's account to get refreshed idToken----#
             user = authe.sign_in_with_email_and_password(email,password)
+            #----Deleting the user from the database----#
             authe.delete_user_account(user['idToken'])
 
+            #----Removing user info from the database based on his role----#
             if role == 1:
                 database.child('users').child('students').child(short_mail).remove()
             elif role == 2:
@@ -166,7 +194,10 @@ def remove_user(request):
                 database.child('users').child('staff').child(short_mail).remove()
             request.session['msg'] = 'User {} was removed successfully!'.format(full_name)
         else:
-            request.session['msg'] = "User does not exist!"
+            if not flag:
+                request.session['msg'] = "User does not exist or you are trying to remove a user that is not a Student!"
+            else:
+                request.session['msg'] = "User does not exist!"
     else:
         request.session['msg'] = 'You cannot delete yourself!'
 

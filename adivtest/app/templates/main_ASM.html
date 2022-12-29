@@ -39,6 +39,14 @@
     <div class="imgcontainer">
       <img src="{% static 'SCE_logo.png' %}" alt="Avatar" class="avatar" />
     </div>
+    
+    {% if msg %}
+    <div class="alert">
+      <span class="alertCloseBtn" onclick="this.parentElement.style.display='none';">&times;</span> 
+      <h3>{{msg}}</h3>
+    </div>
+      {% endif %}
+
     <div class="container">
       <a href = "{% url 'inventory_stock_ASM' %}">
       <div class="tab"><h2 id="tab_text">Inventory Stock</h2></div></a>
@@ -103,20 +111,23 @@
           <input class="text-input" type="text" id="password" name="password" minlength="6" required><br>
 
           <!--Role select option input-->
-          <label>User role:</label><br>
-          <select style="width:100%;" id="role" name="role">
-            <option value="1">Student</option>
-          </select><br>
+          <label hidden>User role:</label>
+          <select style="width:100%;" id="role" name="role" hidden>
+            <option selected value="1">Student</option>
+          </select>
 
+          <label>Student Courses:</label><br>
+          <div class="course_select">
           <!--Selecting Courses for Student-->
-          <select style="width:100%;" id="role" name="role">
           {% for x in courses %}
           {% if x is None %}
           {%else%}
-          <option value="{{x}}">{{x}}</option>
+          <input class="course_checkbox" type="checkbox" id="courses[]" name="courses" value="{{x}}"></input>
+          <label class="course_label">{{x}}</label>
+          <br>
           {%endif%}
           {% endfor %}
-        </select><br>
+          </div><br>
 
           <!--Submit to create new user-->
           <input type="submit" name="submitBtn" value="Create Student" class="submit_button"/>
@@ -128,6 +139,27 @@
 </div>
 <!--Create Student Modal-->
   
+<!--Remove User modal-->
+<div class="modal fade" id="RemoveUser" aria-hidden="true" aria-labelledby="exampleModalToggleLabel" tabindex="-1" data-bs-backdrop="static">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="removeUserLabel">Remove user</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form class ="create_form" action="{% url 'delete_user' %}" method="POST" onsubmit="removeBtn.disabled=true; removeBtn.value='Removing User...'">
+        {% csrf_token %}
+        <div class="modal-body">
+          <div><h3>Email of user:</h3></div>
+          <input class="text-input" type="email" id="email" name="email" required><br>
+          <input type="checkbox" id="staff" name="staff" value="staff" checked hidden></option>
+
+          <input id="removeBtn" type="submit" class="submit_button" value="Remove User" onclick="return confirm('Are you sure you want to remove this user?')"></input>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
 </body>
 </html> 
 
