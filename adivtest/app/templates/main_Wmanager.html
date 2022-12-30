@@ -128,8 +128,8 @@
               {% for k, v in courses.items %}
               {% if v is None %}
               {%else%}
-              <input class="course_checkbox" type="checkbox" id="courses[]" name="courses" value="{{v}}"></input>
-              <label class="course_label">{{v}}</label>
+              <input class="course_checkbox" type="checkbox" id="courses[]" name="courses" value="{{k}}"></input>
+              <label class="course_label">{{k}}</label>
               <br>
               {%endif%}
               {% endfor %}

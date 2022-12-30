@@ -60,16 +60,16 @@ def postLogin(request):
         user_data['msg'] = request.session.get('msg')
         del request.session['msg']
 
+    user_data['inventory'] = database.child('Inventory').get().val()
+
     #----Rendering home page based on user's role----
     if request.session['role'] == 'students':
         return render(request,"main_Student.html",user_data)
     elif request.session['role'] == 'managers':
-        courses = database.child('Courses').get().val()
-        user_data['courses'] = {i: courses[i] for i in range(len(courses))}
+        user_data['courses'] = database.child('Courses').get().val()
         return render(request,"main_Wmanager.html",user_data)
     elif request.session['role'] == 'staff':
-        courses = database.child('Courses').get().val()
-        user_data['courses'] = {i: courses[i] for i in range(len(courses))}
+        user_data['courses'] = database.child('Courses').get().val()
         user_data['students'] = database.child('users').child('students').get().val()
         return render(request,"main_ASM.html",user_data)
 
@@ -289,3 +289,7 @@ def inventory_stock(request):
                 items.append((product_name,product_amount,product_serial,product_location,role)) 
                 
             return render(request, "inventory_stock_Manager.html", {'items':items})
+
+
+def send_requirements(request):
+    return

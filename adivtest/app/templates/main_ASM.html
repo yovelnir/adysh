@@ -124,8 +124,8 @@
           {% for k, v in courses.items %}
           {% if v is None %}
           {%else%}
-          <input class="course_checkbox" type="checkbox" id="courses[]" name="courses" value="{{v}}"></input>
-          <label class="course_label">{{v}}</label>
+          <input class="course_checkbox" type="checkbox" id="courses[]" name="courses" value="{{k}}"></input>
+          <label class="course_label">{{k}}</label>
           <br>
           {%endif%}
           {% endfor %}
@@ -175,8 +175,8 @@
         <div class="buttonMat">
           {% for k, v in courses.items %}
           {% if v is None %}
-          {%else%}
-          <div style="background-color:rgb(134, 118, 118); text-shadow: 0px 0px 2px black;" class="btn btn-primary btn-lg" type="button" data-bs-toggle="modal" data-bs-target="#num{{k}}"><h3 class="fs-2">{{v}}</h3></div>
+          {%elif id in v.course_staff.values%}
+          <div style="background-color:rgb(134, 118, 118); text-shadow: 0px 0px 2px black;" class="btn btn-primary btn-lg" type="button" data-bs-toggle="modal" data-bs-target="#num{{v.course_id}}"><h3 class="fs-2">{{k}}</h3></div>
           <br>
           {%endif%}
           {% endfor %}
@@ -193,17 +193,36 @@
 
 {% for k, v in courses.items %}
   {% if v is None %}
-  {%else%}
-    <div class="modal fade" id="num{{k}}" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="kLabel" aria-hidden="true">
+  {%elif id in v.course_staff.values%}
+    <div class="modal fade" id="num{{v.course_id}}" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="kLabel" aria-hidden="true">
       <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
           <div class="modal-header">
-            <h1 class="modal-title fs-5" id="kLabel">Requierments for {{v}}</h1>
+            <h1 class="modal-title fs-5" id="kLabel">Requierments for {{k}}</h1>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div style="margin: auto;" class="modal-body">
-            <form id="create_form" class ="create_form" action="{% url 'send_requirements' %}" method="POST" onsubmit="submitBtn.disabled=true; submitBtn.value='Sending Requierments...'">
-              <!--CREATE LOOP TO GET INVENTORY ITEMS AND CHECKBOX THEM-->
+            <form id="create_form" class ="create_form" action="" method="POST" onsubmit="submitBtn.disabled=true; submitBtn.value='Sending Requierments...'">
+              <div class="requirement_check">
+              {% for k in inventory %}
+              {% if k is not None %}
+                <input type="checkbox" id="req" value="{{k.product_name}}" name="reqBox" onclick="showQuantity()">{{k.product_name}}</input>
+                <input style="display:none" id="quantity" name="quantity" type="number" min="0" max="0"></input>
+                <br>
+              {% endif %}
+              <script>
+                function showQuantity() {
+                  var checkBox = document.getElementById("req");
+                  var text = document.getElementById("quantity");
+                  if (checkBox.checked == true){
+                      text.style.display = "block";
+                  } else {
+                      text.style.display = "none";
+                  }
+                }
+                </script>
+              {% endfor %}
+              </div>
             </form>
           </div>
         </div>
