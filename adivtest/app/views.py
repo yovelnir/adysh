@@ -329,6 +329,17 @@ def removeInventory(request):
     
 
 
+def ordering(request):
+    items = list()
+    courses = database.child('Courses').get()
+    
+
+
+    items = list()  
+    role = request.session['role'] #role to know which table to render
+    inventory = database.child('Inventory').get()
+    filter = '0'
+    bad_serial_token = "" 
 
 
 
