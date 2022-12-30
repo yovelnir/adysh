@@ -329,17 +329,20 @@ def removeInventory(request):
     
 
 
-def ordering(request):
+def student_courses(request):
+    email = request.session['email']
+    name = email[:email.index("@")]
+
     items = list()
-    courses = database.child('Courses').get()
-    
-
-
-    items = list()  
-    role = request.session['role'] #role to know which table to render
-    inventory = database.child('Inventory').get()
-    filter = '0'
-    bad_serial_token = "" 
-
-
-
+    courses_list = list()
+    courses_db = database.child('users').child('students').child(name).child('courses').get()
+    for c in courses_db.each():
+        if c is not None:
+            courses_list.append(c.val())
+    all_courses = database.child('Courses').get()
+    for c in all_courses.each():
+        c_name = c.key()
+        if c_name is not None:
+            if c_name in courses_list:
+                items.append((c_name, 200))
+    return render(request, "student_courses.html", {'items':items})

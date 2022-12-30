@@ -1,0 +1,47 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static 'styles.css' %}">
+    <link rel="stylesheet" href="{% static 'student_courses.css' %}">
+    <title>My Courses</title>
+<head> 
+  
+  <body>
+    
+    <div class="main_container">
+      <div class="imgcontainer">
+        <img src="{% static 'SCE_logo.png' %}" alt="Avatar" class="avatar" />
+      </div>
+        
+        <table>
+            <thead>
+              <tr>
+                <th>Course Name</th>
+                <th>Requiermants (pdf file)</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for course_name,pdf in items %} 
+                {% if course_name != None %}
+                <tr>
+                    <td>{{ course_name }}</td> 
+                    <td>{{pdf}}</td> 
+                    {% endif %}
+                </tr>
+                {% endfor %}
+            </tbody>
+          </table> 
+     
+          
+         
+          <div id="banner"><h3>ADYSH</h3></div>
+      </div>
+    </form>
+
+     
+</body>
+</html>
