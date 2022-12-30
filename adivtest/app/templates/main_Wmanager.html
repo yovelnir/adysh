@@ -36,12 +36,14 @@
     <div class="imgcontainer">
       <img src="{% static 'SCE_logo.png' %}" alt="Avatar" class="avatar" />
     </div>
+
     {% if msg %}
     <div class="alert">
       <span class="alertCloseBtn" onclick="this.parentElement.style.display='none';">&times;</span> 
       <h3>{{msg}}</h3>
     </div>
       {% endif %}
+      
     <div class="container">
       
       
@@ -63,11 +65,13 @@
         <h1 class="modal-title fs-5" id="manageUsersLabel">User Management</h1>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
-      <div class="modal-body">
+      <div style="margin: auto;" class="modal-body">
         <!--Create User Button-->
-        <div class="btn btn-primary btn-lg" type="button" data-bs-toggle="modal" data-bs-target="#CreateUser"><h3 class="fs-2">Create User</h3></div>
+        <div style="width:100%;" class="btn btn-primary btn-lg" type="button" data-bs-toggle="modal" data-bs-target="#CreateUser"><h3 class="fs-2">Create User</h3></div>
+        <br><br>
         <!--Remove User Button-->
-        <div class="btn btn-primary btn-lg" type="button" data-bs-toggle="modal" data-bs-target="#RemoveUser"><h3 class="fs-2">Remove User</h3></div>
+        <div style="width:100%;" class="btn btn-primary btn-lg" type="button" data-bs-toggle="modal" data-bs-target="#RemoveUser"><h3 class="fs-2">Remove User</h3></div>
+        <br>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -111,11 +115,32 @@
 
           <!--Role select option input-->
           <label>User role:</label><br>
-          <select style="width:100%;" id="role" name="role">
+          <select style="width:100%;" id="role" name="role" onchange="displayDiv('course_select', this)">
             <option value="1">Student</option>
             <option value="3">Academic Staff Member</option>
             <option value="2">Warehouse Manager</option>
           </select><br>
+
+          <!--Selecting Courses for Student-->
+          <div id="course_select">
+            <label>Student Courses:</label><br>
+            <div class="course_select">
+              {% for k, v in courses.items %}
+              {% if v is None %}
+              {%else%}
+              <input class="course_checkbox" type="checkbox" id="courses[]" name="courses" value="{{k}}"></input>
+              <label class="course_label">{{k}}</label>
+              <br>
+              {%endif%}
+              {% endfor %}
+            </div>
+          </div><br>
+
+          <script>
+            function displayDiv(id, elementValue) {
+               document.getElementById(id).style.display = elementValue.value == "1" ? 'block' : 'none';
+            }
+         </script>
 
           <!--Submit to create new user-->
           <input type="submit" name="submitBtn" value="Create User" class="submit_button"/>
