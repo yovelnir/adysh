@@ -30,6 +30,10 @@
 }
 
 .course_select {
+  display: grid;
+  grid-template-columns: auto auto auto auto auto auto auto auto auto;
+  grid-column-gap: 7px;
+  grid-row-gap: 7px;
   background-color: white;
   width: 100%;
   height: 100px;

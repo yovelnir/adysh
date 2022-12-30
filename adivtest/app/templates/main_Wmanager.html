@@ -125,11 +125,11 @@
           <div id="course_select">
             <label>Student Courses:</label><br>
             <div class="course_select">
-              {% for x in courses %}
-              {% if x is None %}
+              {% for k, v in courses.items %}
+              {% if v is None %}
               {%else%}
-              <input class="course_checkbox" type="checkbox" id="courses[]" name="courses" value="{{x}}"></input>
-              <label class="course_label">{{x}}</label>
+              <input class="course_checkbox" type="checkbox" id="courses[]" name="courses" value="{{v}}"></input>
+              <label class="course_label">{{v}}</label>
               <br>
               {%endif%}
               {% endfor %}

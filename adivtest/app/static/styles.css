@@ -118,3 +118,10 @@ a{
 .alertCloseBtn:hover {
   color: black;
 }
+
+.buttonMat {
+  display: grid;
+  grid-template-columns: auto auto auto auto auto auto;
+  grid-column-gap: 7px;
+  grid-row-gap: 7px;
+}

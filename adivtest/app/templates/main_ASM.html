@@ -51,7 +51,7 @@
       <a href = "{% url 'inventory_stock_ASM' %}">
       <div class="tab"><h2 id="tab_text">Inventory Stock</h2></div></a>
       <div class="tab"><h2 id="tab_text">Submit An Order</h2></div>
-      <div class="tab"><h2 id="tab_text">Publish Requierments</h2></div>
+      <div class="tab" type="button" data-bs-toggle="modal" data-bs-target="#requirementList"><h2 id="tab_text">Publish Requierments</h2></div>
       <div class="tab" type="button" data-bs-toggle="modal" data-bs-target="#manageStudents"><h2 id="tab_text">Manage Students</h2></div></button>
     </div>
     <div id="banner"><h3>ADYSH</h3></div>
@@ -121,11 +121,11 @@
           <label>Student Courses:</label><br>
           <div class="course_select">
           <!--Selecting Courses for Student-->
-          {% for x in courses %}
-          {% if x is None %}
+          {% for k, v in courses.items %}
+          {% if v is None %}
           {%else%}
-          <input class="course_checkbox" type="checkbox" id="courses[]" name="courses" value="{{x}}"></input>
-          <label class="course_label">{{x}}</label>
+          <input class="course_checkbox" type="checkbox" id="courses[]" name="courses" value="{{v}}"></input>
+          <label class="course_label">{{v}}</label>
           <br>
           {%endif%}
           {% endfor %}
@@ -162,6 +162,56 @@
     </div>
   </div>
 </div>
+
+<!--Requirement List Modal -->
+<div class="modal fade" id="requirementList" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="requirementListLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="requirementListLabel">Publish Requirements List</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div style="margin: auto;" class="modal-body">
+        <div class="buttonMat">
+          {% for k, v in courses.items %}
+          {% if v is None %}
+          {%else%}
+          <div style="background-color:rgb(134, 118, 118); text-shadow: 0px 0px 2px black;" class="btn btn-primary btn-lg" type="button" data-bs-toggle="modal" data-bs-target="#num{{k}}"><h3 class="fs-2">{{v}}</h3></div>
+          <br>
+          {%endif%}
+          {% endfor %}
+          <br>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!--Requirement List Modal -->
+
+{% for k, v in courses.items %}
+  {% if v is None %}
+  {%else%}
+    <div class="modal fade" id="num{{k}}" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="kLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h1 class="modal-title fs-5" id="kLabel">Requierments for {{v}}</h1>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div style="margin: auto;" class="modal-body">
+            <form id="create_form" class ="create_form" action="{% url 'send_requirements' %}" method="POST" onsubmit="submitBtn.disabled=true; submitBtn.value='Sending Requierments...'">
+              <!--CREATE LOOP TO GET INVENTORY ITEMS AND CHECKBOX THEM-->
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  {%endif%}
+{% endfor %}
+
 </body>
 </html> 
 
