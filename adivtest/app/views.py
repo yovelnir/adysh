@@ -333,6 +333,8 @@ def student_courses(request):
     email = request.session['email']
     name = email[:email.index("@")]
 
+    
+
     items = list()
     courses_list = list()
     courses_db = database.child('users').child('students').child(name).child('courses').get()
