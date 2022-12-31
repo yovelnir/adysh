@@ -60,7 +60,8 @@ def postLogin(request):
         user_data['msg'] = request.session.get('msg')
         del request.session['msg']
 
-    user_data['inventory'] = database.child('Inventory').get().val()
+    inventory = database.child('Inventory').get().val()
+    user_data['inventory'] = {i: inventory[i] for i in range(len(inventory))}
 
     #----Rendering home page based on user's role----
     if request.session['role'] == 'students':
@@ -120,7 +121,6 @@ def create_user(request):
                 'password': password,
             })
             if courses:
-                print(courses)
                 database.child('users').child('students').child(short_mail).child('courses').set(courses)
             #----Creating Student User in Database----#
         elif role == 2:
@@ -150,7 +150,6 @@ def create_user(request):
 def remove_user(request):
     #-----Getting current session user data-----#
     email = request.session['email']
-    user_data = database.child('users').child(request.session['role']).child(email[:email.index('@')]).get().val()
     #-----Getting current session user data-----#
 
     email = request.POST.get('email')
@@ -292,4 +291,23 @@ def inventory_stock(request):
 
 
 def send_requirements(request):
-    return
+    requirements = {}
+    quantity = request.POST.getlist("quantity")
+    i = 0
+    print(quantity)
+    while "" in quantity or "0" in quantity:
+        if quantity[i] == "" or quantity[i] == "0":
+            quantity.pop(i)
+        else:
+            i+=1
+
+    for k in request.POST.getlist("reqBox"):
+        if quantity:
+            requirements[k] = int(quantity[0])
+            quantity.pop(0)
+    course = database.child("Courses").child(request.POST.get("course"))
+    course.child("requirements").set(requirements)
+
+    request.session['msg'] = "Requirements for course " + request.POST.get("course") + " have been sent!"
+    
+    return redirect('/home')
