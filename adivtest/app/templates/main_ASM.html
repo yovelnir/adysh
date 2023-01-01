@@ -5,9 +5,27 @@
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="{% static 'styles.css' %}">
+  <link rel="stylesheet" href="{% static 'css/bootstrap.min.css'' %}" />
+  <script src="{% static 'js/bootstrap.min.js' %}"></script>  
+  <link rel="stylesheet" href="{% static 'create_user.css' %}" /> 
+  <link rel="stylesheet" href="{% static 'styles.css' %}" />
   <title>Main Page</title>
-</head> 
+</head>
+
+<style> 
+
+  #tab_text{ 
+    font-weight: 700;
+    font-size: 24px; 
+  } 
+  #logoutbtn{ 
+    margin-left: 16px; 
+    padding-top: 12px;
+    font-size: 14px;
+  } 
+  
+  </style>
+
 <body> 
   <a href="{% url 'logout' %}"
       ><button type="submit" id="logoutbtn">
@@ -21,14 +39,355 @@
     <div class="imgcontainer">
       <img src="{% static 'SCE_logo.png' %}" alt="Avatar" class="avatar" />
     </div>
+    
+    {% if msg %}
+    <div class="alert">
+      <span class="alertCloseBtn" onclick="this.parentElement.style.display='none';">&times;</span> 
+      <h3>{{msg}}</h3>
+    </div>
+      {% endif %}
+
     <div class="container">
       <a href = "{% url 'inventory_stock_ASM' %}">
       <div class="tab"><h2 id="tab_text">Inventory Stock</h2></div></a>
       <div class="tab"><h2 id="tab_text">Submit An Order</h2></div>
-      <div class="tab"><h2 id="tab_text">Publish Requierments</h2></div>
+      <div class="tab" type="button" data-bs-toggle="modal" data-bs-target="#requirementList"><h2 id="tab_text">Publish Requierments</h2></div>
+      <div class="tab" type="button" data-bs-toggle="modal" data-bs-target="#manageStudents"><h2 id="tab_text">Manage Students</h2></div></button>
     </div>
-    <div id="banner"><h3>ADYSH</h3></div> 
+    <div id="banner"><h3>ADYSH</h3></div>
+
+<!--Student Management Modal -->
+<div class="modal fade" id="manageStudents" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="manageStudentsLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="manageStudentsLabel">Student Management</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div style="margin: auto;" class="modal-body">
+        <!--Create User Button-->
+        <div style="width:100%;" class="btn btn-primary btn-lg" type="button" data-bs-toggle="modal" data-bs-target="#CreateUser"><h3 class="fs-2">Create Student</h3></div>
+        <br><br>
+        <!--Remove User Button-->
+        <div style="width:100%;" class="btn btn-primary btn-lg" type="button" data-bs-toggle="modal" data-bs-target="#RemoveUser"><h3 class="fs-2">Remove Student</h3></div>
+        <br><br>
+        <!--Remove Student From Course Button-->
+        <div style="width:100%;" class="btn btn-primary btn-lg" type="button" data-bs-toggle="modal" data-bs-target="#removeCourse"><h3 class="fs-2">Remove Student From Course</h3></div>
+        <br>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!--Student Management Modal -->
+
+<!--Create Student Modal-->
+<div class="modal fade" id="CreateUser" aria-hidden="true" aria-labelledby="exampleModalToggleLabel" tabindex="-1" data-bs-backdrop="static">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="createUserLabel">Create new user:</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form id="create_form" class ="create_form" action="{% url 'create_user' %}" method="POST" onsubmit="submitBtn.disabled=true; submitBtn.value='Creating Student...'">
+        {% csrf_token %}
+        <div class="modal-body">
+
+          <!--First name text input-->
+          <label for="fname">First name:</label>
+          <input class="text-input" type="text" id="fname" name="fname" required><br>
+
+          <!--Last name text input-->
+          <label for="lname">Last name:</label>
+          <input class="text-input" type="text" id="lname" name="lname" required><br>
+
+          <!--ID text input--> 
+          <label for="id">ID:</label>
+          <input class="text-input" type="text" onkeypress="return (event.charCode !=8 && event.charCode ==0 || (event.charCode >= 48 && event.charCode <= 57))" id="id" name="id" minlength="9" maxlength="9" required><br>
+
+          <!--Email text input-->
+          <label for="email">Email:</label>
+          <input class="text-input" type="email" id="email" name="email" required><br>
+
+          <!--Password text input-->
+          <label for="password">Password:</label>
+          <input class="text-input" type="text" id="password" name="password" minlength="6" required><br>
+
+          <!--Role select option input-->
+          <label hidden>User role:</label>
+          <select style="width:100%;" id="role" name="role" hidden>
+            <option selected value="1">Student</option>
+          </select>
+
+          <!--Selecting Courses for Student-->
+          <label>Student Courses:</label><br>
+          <div class="course_select">
+          {% for k, v in courses.items %}
+          {% if v is None %}
+          {%else%}
+          <input class="course_checkbox" type="checkbox" id="courses[]" name="courses" value="{{k}}"></input>
+          <label class="course_label">{{k}}</label>
+          <br>
+          {%endif%}
+          {% endfor %}
+          </div><br>
+
+          <!--Submit to create new user-->
+          <input type="submit" name="submitBtn" value="Create Student" class="submit_button"/>
+
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+<!--Create Student Modal-->
   
+<!--Remove User modal-->
+<div class="modal fade" id="RemoveUser" aria-hidden="true" aria-labelledby="exampleModalToggleLabel" tabindex="-1" data-bs-backdrop="static">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="removeUserLabel">Remove user</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form class ="create_form" action="{% url 'delete_user' %}" method="POST" onsubmit="removeBtn.disabled=true; removeBtn.value='Removing User...'">
+        {% csrf_token %}
+        <div class="modal-body">
+          <div><h3>Email of user:</h3></div>
+          <input class="text-input" type="email" id="email" name="email" required><br>
+          <input type="checkbox" id="staff" name="staff" value="staff" checked hidden></option>
+
+          <input id="removeBtn" type="submit" class="submit_button" value="Remove User" onclick="return confirm('Are you sure you want to remove this user?')"></input>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+<!--Remove User modal-->
+
+<!--Remove course from student modal-->
+<div class="modal fade" id="removeCourse" aria-hidden="true" aria-labelledby="removeCourseLabel" tabindex="-1" data-bs-backdrop="static">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="removeCourseLabel">Remove Student From Course</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form class ="create_form" action="{% url 'remove_from_course' %}" method="POST" onsubmit="removeBtn.disabled=true; removeBtn.value='Removing Student From Courses...'">
+        {% csrf_token %}
+        <div class="modal-body">
+
+          <label>Select Student:</label><br>
+          <select style="width:100%;" id="student" name="student" onchange="checkCourses()">
+            <option disabled selected value> -- Select a Student -- </option>
+            {% for s, v in students.items %}
+             <option value="{{s}}">{{v.full_name}}, id: {{v.id}}</option>
+            {% endfor %}
+          </select>
+
+          <label>Select Courses to Remove:</label><br>
+          <div class="course_remove" id="studentCourses">
+          </div>
+
+          <script>
+            function checkCourses(){
+              var stud = document.getElementById("student")
+              stud = student.value
+
+              var cour = document.getElementById("studentCourses")
+
+              while (cour.hasChildNodes()) {
+                cour.removeChild(cour.lastChild);
+              }
+              if (s[stud]["courses"])
+              {
+                for(let i = 0; i < s[stud]["courses"].length; i++)
+                {
+                  var input = document.createElement("input")
+                  input.type="checkbox"
+                  input.value = s[stud]["courses"][i]
+                  input.classList.add("course_checkbox")
+                  input.id = "courseRemove[]"
+                  input.name = "courseRemove"
+                  cour.appendChild(input)
+
+                  var label = document.createElement("label")
+                  label.classList.add("course_label")
+                  label.innerHTML= s[stud]["courses"][i]
+                  cour.appendChild(label)
+                }
+             }
+              else
+                cour.appendChild(document.createTextNode("No courses"))
+            }
+          </script>
+
+          <input id="removeBtn" type="submit" class="submit_button" value="Remove Student From Courses" onclick="return confirm('Are you sure you want to remove the student from these courses?')"></input>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+<!--Remove course from student modal-->
+
+<!--Requirement List Modal -->
+<div class="modal fade" id="requirementList" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="requirementListLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="requirementListLabel">Publish Requirements List</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div style="margin: auto; right:5px;" class="modal-body">
+        <div class="buttonMat">
+          {% for k, v in courses.items %}
+          {% if v is None %}
+          {%elif id in v.course_staff.values%}
+          <div id="course_button" class="btn btn-primary btn-lg" type="button" data-bs-toggle="modal" data-bs-target="#num{{v.course_id}}"><p class="course_button">{{k}}</p></div>
+          <br>
+          {%endif%}
+          {% endfor %}
+          <br>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!--Requirement List Modal -->
+
+<!--Requirement List Modal -->
+<div class="hiddenModals">
+{% for k, v in courses.items %}
+  {% if v is None %}
+  {%elif id in v.course_staff.values%}
+    <div class="modal fade" id="num{{v.course_id}}" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="kLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h1 class="modal-title fs-5" id="kLabel">Requierments for {{k}}</h1>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div style="margin: auto;" class="modal-body">
+            <form id="req_form" class ="req_form" action="{% url 'send_requirements' %}" method="POST" onsubmit="submitBtn.disabled=true; submitBtn.value='Sending Requierments...'">
+              <input type="checkbox" name="course" id="course" value="{{k}}" hidden checked>
+              {% csrf_token %}
+              <div class="requirement_check">
+              {% for k, v in inventory.items %}
+              {% if v is not None %}
+                <input class="reqBox" type="checkbox" id="reqBox[]" value="{{v.product_name}}" name="reqBox" />{{v.product_name}}
+                <input class="quantity" id="quantity[]" name="quantity" type="number" min="0" max="0" />
+                <br>
+              {% endif %}
+              {% endfor %}
+              </div>
+              <input id="submitBtn" type="submit" class="submit_button" value="Send Requierments">
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  {%endif%}
+{% endfor %}
+</div>
+<!--Requirement List Modal-->
+
+<!--Script for selecting right checkboxes in each course requirements modal-->
+<script>
+  var temp = document.getElementsByClassName("reqBox")
+  for(let i = 0; i<temp.length; i++)
+  {
+    temp[i].setAttribute("onclick", "showQuantity("+i.toString()+")")
+  }
+  function showQuantity(index) {
+    // Get the checkbox
+    var checkBox = document.getElementsByClassName("reqBox");
+    // Get the text box
+    var text = document.getElementsByClassName("quantity");
+
+    // If the checkbox is checked, set min to 1, max to 99 and start value as 1
+    if (checkBox[index].checked == true){
+      text[index].min="1"
+      text[index].max="99"
+      text[index].value="1"
+    } else {
+      text[index].min="0"
+      text[index].max="0"
+      text[index].value=""
+    }
+  }
+</script>
+<!--Script for selecting right checkboxes in each course requirements modal-->
+
+<!--Converting dictionary from django to javascript -->
+{% autoescape off %}
+<script type="text/javascript">
+  String.prototype.replaceAt = function(index, replacement) {
+    if (index >= this.length) {
+        return this.valueOf();
+    }
+
+    return this.substring(0, index) + replacement + this.substring(index + 1);
+  }
+
+    var s = "{{students}}"
+    s = s.replace("OrderedDict(", "")
+    s = "{" + s.slice(1, s.length-2) + "}"
+    let i=1
+    while(s[i]){
+      if (s[i] === "{"){
+        while(s[i] !== "}"){
+          if(s[i] === "'")
+            s = s.replaceAt(i, '"')
+          i+=1
+        }
+      }
+
+      if(s[i] === ",")
+        s = s.replaceAt(i, ":")
+
+      if (s[i] === "(")
+      {
+        s = s.replaceAt(i, "")
+        i-=1
+      }
+      if(s[i] === ")")
+        s = s.replaceAt(i, ",")
+      if(s[i] === "'")
+        s = s.replaceAt(i, '"')
+
+      if(s[i] === ":" && s[i-1] ===" ")
+        s = s.replaceAt(i, "")
+
+      if(i+3===s.length)
+      {
+        s = s.split(0, i) +" "
+        while(s[i])
+        {
+          if (s[i] === ")")
+            s = s.replaceAt(i, "")
+          i+=1
+        }
+      }
+      
+      i+=1
+
+    }
+    i = 0
+    while(s[i]){
+      if(s[i] === ',' && s[i+1] === ':')
+        s = s.replaceAt(i+1, "")
+      i+=1
+    }
+    s = JSON.parse(s)
+</script>
+{% endautoescape %}
+<!--Converting dictionary from django to javascript -->
+
 </body>
 </html> 
 
