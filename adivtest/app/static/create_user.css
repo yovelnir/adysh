@@ -28,3 +28,46 @@
   background-color: #f2f2f2;
   padding: 20px;
 }
+
+.course_select {
+  display: grid;
+  grid-template-columns: auto auto auto auto auto auto auto auto auto;
+  grid-column-gap: 7px;
+  grid-row-gap: 7px;
+  background-color: white;
+  width: 100%;
+  height: 100px;
+  padding: 12px 20px;
+  margin: 8px 0;
+  overflow: auto;
+  border: 1px solid #ccc;
+  scroll-padding: 0;
+}
+
+.course_checkbox {
+  float: right;
+  width: 15px;
+  height: 15px;
+}
+.course_label {
+  float: right;
+  font-size: 15px;
+  position: relative;
+  bottom: 5px;
+  right: 5px;
+}
+
+.course_remove {
+  display: grid;
+  grid-template-columns: auto auto auto auto auto auto;
+  grid-column-gap: 7px;
+  grid-row-gap: 7px;
+  background-color: white;
+  width: 100%;
+  height: 100px;
+  padding: 12px 20px;
+  margin: 8px 0;
+  overflow: auto;
+  border: 1px solid #ccc;
+  scroll-padding: 0;
+}
