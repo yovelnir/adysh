@@ -10,6 +10,9 @@ from django.contrib import messages
 from django.urls import reverse
 from reportlab.pdfgen.canvas import Canvas
 import os
+import firebase_admin
+from firebase_admin import credentials, storage
+from datetime import timedelta
 
 
 config = {
@@ -25,7 +28,13 @@ config = {
 firebase = pyrebase.initialize_app(config)
 authe = firebase.auth()
 database = firebase.database()
-storage = firebase.storage()
+storage1 = firebase.storage()
+current_dir = os.getcwd()
+cred = credentials.Certificate(f'{current_dir}/adysh-d6408-firebase-adminsdk-sd2zj-393e99226b.json')
+firebase_admin.initialize_app(cred, {
+    'storageBucket': 'adysh-d6408.appspot.com'
+})
+
 
 def postLogin(request):
     if request.session.get('uid'):
@@ -73,8 +82,11 @@ def postLogin(request):
     if request.session['role'] == 'students':
         return render(request,"main_Student.html",user_data)
     elif request.session['role'] == 'managers':
+        user_data['courses'] = database.child('Courses').get().val()
         return render(request,"main_Wmanager.html",user_data)
     elif request.session['role'] == 'staff':
+        user_data['courses'] = database.child('Courses').get().val()
+        user_data['students'] = database.child('users').child('students').get().val()
         return render(request,"main_ASM.html",user_data)
 
 def login_page(request):
@@ -112,11 +124,12 @@ def create_user(request):
     and short_mail not in database.child('users').child('staff').get().val() \
     and short_mail not in database.child('users').child('managers').get().val():
         if role == 1:
-            user = authe.create_user_with_email_and_password(email, password)
+            #----Creating Student User in Database----#
             if request.POST.getlist('courses'):
                 courses = request.POST.getlist('courses')
             else:
                 courses = None
+            authe.create_user_with_email_and_password(email, password)
             database.child('users').child('students').child(short_mail).set({
                 'full_name': full_name,
                 'id': num_id,
@@ -126,19 +139,23 @@ def create_user(request):
                 database.child('users').child('students').child(short_mail).child('courses').set(courses)
             #----Creating Student User in Database----#
         elif role == 2:
-            user = authe.create_user_with_email_and_password(email, password)
+            #----Creating Warehouse Manager User in Database----#
+            authe.create_user_with_email_and_password(email, password)
             database.child('users').child('managers').child(short_mail).set({
                 'full_name': full_name,
                 'id': num_id,
                 'password': password,
             })
+            #----Creating Warehouse Manager User in Database----#
         elif role == 3:
-            user = authe.create_user_with_email_and_password(email, password)
+            #----Creating Academic Staff Member User in Database----#
+            authe.create_user_with_email_and_password(email, password)
             database.child('users').child('staff').child(short_mail).set({
                 'full_name': full_name,
                 'id': num_id,
                 'password': password,
             })
+            #----Creating Academic Staff Member User in Database----#
         request.session['msg'] = 'User {} was created successfully!'.format(full_name)
     else:
         request.session['msg'] = 'User already exists!'
@@ -152,25 +169,39 @@ def remove_user(request):
 
     email = request.POST.get('email')
     if email != request.session['email']:
+        #----Checking which role is trying to remove a user ASM or WM----#
+        if request.POST.get('staff'):
+            flag = 0
+        else:
+            flag = 1   
+        
         password = None
         short_mail = email[:email.index('@')]
+
         if short_mail in database.child('users').child('students').get().val():
+            #----Checking if user is under Students in database----#
             full_name = database.child('users').child('students').child(short_mail).child('full_name').get().val()
             password = database.child('users').child('students').child(short_mail).child('password').get().val()
             role = 1
-        elif short_mail in database.child('users').child('managers').get().val():
+        elif short_mail in database.child('users').child('managers').get().val() and flag:
+            #----Checking if user is under Warehouse Manager in database----#
             full_name = database.child('users').child('managers').child(short_mail).child('full_name').get().val()
             password = database.child('users').child('managers').child(short_mail).child('password').get().val()
             role = 2
-        elif short_mail in database.child('users').child('staff').get().val():
+        elif short_mail in database.child('users').child('staff').get().val() and flag:
+            #----Checking if user is under Academic Staff Members in database----#
             full_name = database.child('users').child('staff').child(short_mail).child('full_name').get().val()
             password = database.child('users').child('staff').child(short_mail).child('password').get().val()
             role = 3
             
         if password:
+            #----If user exists under one of the roles in the database----#
+            #----Loging in to the user's account to get refreshed idToken----#
             user = authe.sign_in_with_email_and_password(email,password)
+            #----Deleting the user from the database----#
             authe.delete_user_account(user['idToken'])
 
+            #----Removing user info from the database based on his role----#
             if role == 1:
                 database.child('users').child('students').child(short_mail).remove()
             elif role == 2:
@@ -179,7 +210,10 @@ def remove_user(request):
                 database.child('users').child('staff').child(short_mail).remove()
             request.session['msg'] = 'User {} was removed successfully!'.format(full_name)
         else:
-            request.session['msg'] = "User does not exist!"
+            if not flag:
+                request.session['msg'] = "User does not exist or you are trying to remove a user that is not a Student!"
+            else:
+                request.session['msg'] = "User does not exist!"
     else:
         request.session['msg'] = 'You cannot delete yourself!'
 
@@ -194,7 +228,7 @@ def inventory_stock(request):
     filter = '0'
     bad_serial_token = "" 
     request.session['bad_serial'] = 0
-
+    request.session['bad_serial'] = 0
 
 
 
@@ -453,24 +487,29 @@ def student_courses(request):
                 for p in products.each():
                     if p is not None:
                         pdf_data.append((p.key(), p.val()))
-                name = f'{c_name} requierments list.pdf'
-                new_file = Canvas(name)
+                name = f'{c_name} requierments list'
+                name_w_pdf = f'{name}.pdf'
+                new_file = Canvas(name_w_pdf)
                 new_file.setFont('Helvetica', 14)
                 new_file.setTitle('Requiermants list')
-                new_file.drawCentredString(300, 750, name[:name.index(".")])
+                new_file.drawCentredString(300, 750, name)
                 text = new_file.beginText(60, 720)
                 current_dir = os.getcwd()
-                current_dir = f'{current_dir}\{name}'
+                current_dir = f'{current_dir}\{name_w_pdf}'
                 for line in pdf_data:
                     text.textLine(f'{line[0]}: {line[1]}')
                 new_file.drawText(text)
                 new_file.save()
                 #pdf_path = 'adysh-d6408.appspot.com/requirements list'
-               # storage.child('pdf files').put(current_dir, name)
-                items.append((c_name, (p.key(), p.val())))
-                new_file.drawText(text)
-                new_file.save()
-                #pdf_path = 'adysh-d6408.appspot.com/requirements list'
-                storage.child('pdf files').put(current_dir, name)
-                items.append((c_name, (p.key(), p.val())))
+                #storage.child('pdf files').put(current_dir, name)
+                #items.append((c_name, (p.key(), p.val())))
+                storage1.child(name_w_pdf).put(current_dir, name_w_pdf)
+                bucket = storage.bucket()
+                blob = bucket.blob(name_w_pdf)
+                signed_url = blob.generate_signed_url(
+                    version='v4',
+                    expiration=timedelta(hours=1),
+                    method='GET'
+                )
+                items.append((c_name, signed_url))
     return render(request, "student_courses.html", {'items':items})

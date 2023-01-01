@@ -21,7 +21,7 @@
       <div class="imgcontainer">
         <img src="{% static 'SCE_logo.png' %}" alt="Avatar" class="avatar" />
       </div>
-        
+      
         <table>
             <thead>
               <tr>
@@ -30,19 +30,17 @@
               </tr>
             </thead>
             <tbody>
-              {% for course_name,pdf in items %} 
-                {% if course_name != None %}
-                <tr>
-                    <td>{{ course_name }}</td> 
-                    <td>{{pdf}}</td> 
-                    {% endif %}
-                </tr>
-                {% endfor %}
+              {% for course,signed_url in items %} 
+                    {% if course != None %}
+                        <tr>
+                            <td>{{ course }}</td>
+                            <td><a href="{{signed_url}}">Download file
+                            </a></td> 
+                        {% endif %}
+                    </tr>
+                    {% endfor %}
             </tbody>
-          </table> 
-     
-          
-         
+            </table> 
           <div id="banner"><h3>ADYSH</h3></div>
       </div>
     </form>
