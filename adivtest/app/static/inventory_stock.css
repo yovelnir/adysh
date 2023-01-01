@@ -5,9 +5,11 @@ body{
 }
 .imgcontainer {
     text-align: center;
-    margin: 24px 0 32px 0;
+    margin: 0 0 32px 0;
+    position: relative;
     display: flex;
-    justify-content: center;
+    justify-content: center; 
+   
   }
 
 table th, td {
@@ -26,7 +28,7 @@ tr, td{
     margin-right: auto; 
     background-color: whitesmoke; 
     width: 70%; 
-    height: 550px;
+    height: 100%;
 }
 table{  
     margin-top: 0;
@@ -122,7 +124,7 @@ table{
 
 .box {
     width: 40%;
-    margin: 0 auto;
+    margin: 0 auto; 
     background: rgba(255,255,255,0.2);
     padding: 35px;
     border: 2px solid #fff;
@@ -161,7 +163,7 @@ table{
     padding: 20px;
     background: #fff;
     border-radius: 5px;
-    width: 30%;
+    width: 50%; /* test */
     position: relative;
     transition: all 5s ease-in-out;
   }
@@ -205,14 +207,18 @@ table{
     border-radius: 5px; 
     margin-top: -20px; 
     margin-bottom: 5px;  
-    width: 60%; 
+    width: 90%; 
     text-align: center; 
     vertical-align: middle;
 } 
 .fill_fields{ 
     background-color: whitesmoke; 
     border-radius: 5px; 
-    text-align: center;
+    text-align: center; 
+    width: 40%;
+    display: inline-block; 
+    margin-bottom: 30px; 
+    margin-right: 16px
 } 
 #btn_save{ 
     border: none; 
@@ -233,5 +239,47 @@ table{
 p{ 
     font-size: 14px; 
     margin-top: -16px;
-}
+} 
+/* back button css */
+#btn_back{ 
+    margin-left: 8px;
+    display: inline; 
+    border: none; 
+    background-color: whitesmoke;
+    cursor: pointer;
+} 
 
+#btn_back_img{ 
+    width: 30px; 
+    display: inline-block;
+    vertical-align: middle; 
+    height: 30px;   
+}
+#back_text{   
+    display: inline;
+    margin-top: -5px;
+} 
+/* radio check box css for consumable */ 
+
+input[type="radio"] {
+    background-color: transparent;
+    border: 2px solid rgba(0,0,0,0.2);
+    border-radius: 50%;
+    box-shadow: inset 0 0 0 0 white;
+    cursor: pointer;
+    font: inherit;
+    height: 1em;
+    outline: none;
+    width: 1em;
+    -moz-appearance: none;
+    -webkit-appearance: none;
+  }
+  input[type="radio"]:checked {
+    background-color: white;
+    box-shadow: inset 0 0 0 .9875em #54f584;
+    -webkit-transition: background .15s, box-shadow .1s; 
+    transition: background .15s, box-shadow .1s; 
+  } 
+  form{
+    text-align: center; 
+  }

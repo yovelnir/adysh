@@ -29,6 +29,8 @@ urlpatterns = [
     path('inventory_stock_ASM/',views.inventory_stock, name='inventory_stock_ASM'), 
     path('inventory_stock_Manager/',views.inventory_stock, name='inventory_stock_Manager'),
     path('delete_user/',views.remove_user, name='delete_user'),
+    path('send_requirements/',views.send_requirements, name='send_requirements'),
+    path('remove_from_course/', views.remove_from_course, name='remove_from_course'),
     path('logout/', views.logout, name='logout'), 
     path('student_courses/', views.student_courses, name='student_courses')
 ]
