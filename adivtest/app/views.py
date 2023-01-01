@@ -64,7 +64,7 @@ def postLogin(request):
 
     #----Getting inventory from database----#
     inventory = database.child('Inventory').get().val()
-    user_data['inventory'] = {i: inventory[i] for i in range(len(inventory))}
+    user_data['inventory'] = inventory
 
     #----Rendering home page based on user's role----#
     if request.session['role'] == 'students':
@@ -320,7 +320,7 @@ def editInventory(request):
       
     # ======= check if serial number exist 
     for key in inventory.each(): 
-        if int(serial_number) == key.key(): 
+        if int(serial_number) == int(key.key()): 
             serial_flag = True 
     
     if serial_flag == False: 
@@ -361,8 +361,9 @@ def removeInventory(request):
     
     # ======= check if serial number exist 
     for key in inventory.each(): 
-        if int(serial_number) == key.key(): 
-            serial_flag = True
+        if int(serial_number) == int(key.key()): 
+            serial_flag = True 
+
         
     if serial_flag == False: 
         request.session['bad_serial'] = -1  
@@ -405,7 +406,7 @@ def NewItemInventory(request):
       
     # ======= check if serial number exist 
     for key in inventory.each(): 
-        if serial_number == key.key():  
+        if int(serial_number) == int(key.key()):  
             serial_flag = True
         
     
