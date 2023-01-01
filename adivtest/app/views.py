@@ -181,8 +181,7 @@ def inventory_stock(request):
     role = request.session['role'] #role to know which table to render
     inventory = database.child('Inventory').get()
     filter = '0'
-    bad_serial_token = "" 
-    request.session['bad_serial'] = 0
+    bad_serial_token = '0'
 
 
 
@@ -344,8 +343,6 @@ def student_courses(request):
         if c is not None:
             courses_list.append(c.val())
     all_courses = database.child('Courses').get()
- 
-
     for c in all_courses.each():
         c_name = c.key()
         if c_name is not None:
@@ -369,7 +366,11 @@ def student_courses(request):
                     text.textLine(f'{line[0]}: {line[1]}')
                 new_file.drawText(text)
                 new_file.save()
-
+                #pdf_path = 'adysh-d6408.appspot.com/requirements list'
+               # storage.child('pdf files').put(current_dir, name)
+                items.append((c_name, (p.key(), p.val())))
+                new_file.drawText(text)
+                new_file.save()
                 #pdf_path = 'adysh-d6408.appspot.com/requirements list'
                 storage.child('pdf files').put(current_dir, name)
                 items.append((c_name, (p.key(), p.val())))
