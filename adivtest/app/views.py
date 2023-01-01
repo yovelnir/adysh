@@ -179,21 +179,27 @@ def inventory_stock(request):
     inventory = database.child('Inventory').get()
     filter = '0'
     bad_serial_token = "" 
-
+    request.session['bad_serial'] = 0
 
 
     if 'InStock' in request.POST: 
         filter = request.POST['InStock'] 
     elif 'OutOfStock' in request.POST:
         filter = request.POST['OutOfStock'] 
-    elif 'btn_save_edit' in request.POST: 
+    elif 'btn_save_edit' in request.POST:    
         editInventory(request)             
     elif 'btn_remove_edit' in request.POST: 
         removeInventory(request) 
+    elif 'btn_save_new' in request.POST: 
+        NewItemInventory(request)
     
+
     if request.session['bad_serial'] == -1:
         request.session['bad_serial'] = 0
-        bad_serial_token = 'Serial Number does not exist!'
+        bad_serial_token = 'Serial Number does not exist!' 
+    if request.session['bad_serial'] == -2:
+        request.session['bad_serial'] = 0
+        bad_serial_token = 'Serial Number already exist!'
 
 #======================================= table for academic staff member ======================================
     if role == 'staff':
@@ -314,12 +320,12 @@ def removeInventory(request):
     inventory = database.child('Inventory').get() 
     serial_number = request.POST['serial_number'] 
     serial_flag = False 
-      
+    
     # ======= check if serial number exist 
     for key in inventory.each(): 
-        if serial_number == key.key(): 
+        if int(serial_number) == key.key(): 
             serial_flag = True
-    
+        
     if serial_flag == False: 
         request.session['bad_serial'] = -1  
 
@@ -327,8 +333,38 @@ def removeInventory(request):
         database.child('Inventory').child(serial_number).remove() 
         return render(request,"inventory_stock_Manager.html")
     
+def NewItemInventory(request): 
+    
+    inventory = database.child('Inventory').get() 
+    serial_number = request.POST['serial_number'] 
+    serial_flag = False 
+      
+    # ======= check if serial number exist 
+    for key in inventory.each(): 
+        if serial_number == key.key():  
+            serial_flag = True
+        
+    
+    if serial_flag == True: 
+        request.session['bad_serial'] = -2
+
+    else:  
+        new_product_name = request.POST['product_name']
+        new_quantity = request.POST['quantity'] 
+        new_product_location = request.POST['product_location']
+        new_consumable = request.POST['consumable']
 
 
+        data = { 
+            'product_name': new_product_name,
+            'Physical_Location': new_product_location, 
+            'Quantity': int(new_quantity),
+            'Consumable': new_consumable
+        }
+
+        database.child('Inventory').child(serial_number).update(data)
+                 
+    return render(request,"inventory_stock_Manager.html")
 
 
 

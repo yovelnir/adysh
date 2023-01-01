@@ -14,8 +14,17 @@
     
   
     <div class="main_container">
+      
+      <!-- back button -->
+      <a href="{% url 'home' %}">
+        <button type="submit" id="btn_back">
+          <img src="{% static 'back_arrow.png' %}" id="btn_back_img" alt="back arrow">
+          <p id="back_text">Back</p>
+        </button>
+      </a> 
+      <!-- SCE Logo -->
       <div class="imgcontainer">
-        <img src="{% static 'SCE_logo.png' %}" alt="Avatar" class="avatar" />
+        <img src="{% static 'SCE_logo.png' %}" alt="Avatar" class="avatar"/>
       </div>
       
       

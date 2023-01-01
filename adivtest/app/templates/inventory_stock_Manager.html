@@ -10,15 +10,21 @@
     <title>View Stock</title>
 </head>
 <body>
-     
-  
-    <div class="main_container">
+
+    <div class="main_container">  
+
+        <a href="{% url 'home' %}">
+          <button type="submit" id="btn_back" name="home">
+            <img src="{% static 'back_arrow.png' %}" id="btn_back_img" alt="back arrow">
+            <p id="back_text">Back</p>
+          </button>
+        </a> 
+      
         <div class="imgcontainer">
-          <img src="{% static 'SCE_logo.png' %}" alt="Avatar" class="avatar" />
+          <img src="{% static 'SCE_logo.png' %}" alt="Avatar" class="avatar"/>
         </div>
         
         <div id="btn_top">
-
         <div id="filter_container"> 
           <form action="" method="POST">
             {% csrf_token %}
@@ -32,7 +38,7 @@
               <div class="dropdown-content">
                 <a class="button" href="#popup1">Edit Item</a>
                 <a class="dropdown_options" href="#popup2">Remove Item</a>
-                <a class="dropdown_options" href="#">Link 3</a>      
+                <a class="dropdown_options" href="#popup3">Add Item</a>      
             </div>
           </span>
           
@@ -75,7 +81,7 @@
                 {% if error %}
                   <p style="color: red;">{{error}}</p> 
                 {% endif %}
-                <a class="close" href="#">&times;</a>
+                <a class="close" href="{% url 'inventory_stock_Manager' %}">&times;</a>
                 <div class="content">
                   <form action="" method="POST"> 
                     {% csrf_token %}
@@ -127,7 +133,7 @@
                     {% if error %} 
                     <p style="color: red;">{{error}} </p> 
                     {% endif %}
-                <a class="close" href="#">&times;</a>
+                <a class="close" href="{% url 'inventory_stock_Manager' %}">&times;</a>
                 <div class="content">
                   <form action="" method="POST"> 
                     {% csrf_token %}
@@ -143,6 +149,79 @@
                     <div id="btn_save_container"> 
                       <button id="btn_save" type="submit" name="btn_remove_edit" >Remove</button>
                     </div> 
+            
+                  </form>
+                </div>
+              </div>
+            </div> 
+
+            <div id="popup3" class="overlay">
+              <div class="popup">
+                <h2>Add New Item</h2>
+                <p>Fill in all the fields to save a new product.</p>
+                {% if error %}
+                  <p style="color: red;">{{error}}</p> 
+                {% endif %}
+                <a class="close" href="{% url 'inventory_stock_Manager' %}">&times;</a>
+                <div class="content">
+                  <form action="" method="POST"> 
+                    {% csrf_token %}
+                    <div class="fill_fields"> 
+                        <h3>Serial:</h3><input 
+                        type="number"
+                        class="fields"
+                        placeholder="Enter Serial Number"
+                        name="serial_number"
+                        required> 
+                    </div>
+                    <div class="fill_fields"> 
+                      <h3>Product Name:</h3><input 
+                      type="text"
+                      class="fields"
+                      placeholder="Enter Product Name"
+                      name="product_name"
+                      required
+                     >
+                  </div>
+                  <div class="fill_fields"> 
+                    <h3>Quantity:</h3><input 
+                    type="number"
+                    class="fields"
+                    placeholder="Enter Quantity"
+                    name="quantity"
+                    required
+                   >
+                </div>
+                <div class="fill_fields"> 
+                  <h3>Location:</h3><input 
+                  type="text"
+                  class="fields"
+                  placeholder="Enter Location"
+                  name="product_location"
+                  required
+                 >
+              </div>
+              <div class="fill_fields"> 
+                <h3>Consumable:</h3><input 
+                type="radio"
+                class = 'radio'
+                name = 'consumable'
+                value="1"
+                required
+               >
+               <label for="consumable">Yes</label>
+               <input 
+                type="radio"
+                class = 'radio'
+                name = 'consumable'
+                value="0"
+                required
+               >
+               <label for="consumable">No</label>
+            </div>
+              <div id="btn_save_container"> 
+                <button id="btn_save" type="submit" name="btn_save_new" >Save</button>
+            </div> 
             
                   </form>
                 </div>
