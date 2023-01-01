@@ -22,7 +22,7 @@ from django.conf.urls.static import static #for css and pictures files to be inc
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', views.login_page, name = 'login'),            #login page path
-    path('home/', views.postLogin),
+    path('home/', views.postLogin, name = 'home'),
     path('main_Student/', views.main_Student, name = 'main_Student'),       #path for Student user 
     path('main_ASM/',views.main_ASM,name='main_ASM'),         #path to main page for ASM   
     path('create_user/',views.create_user, name='create_user'),

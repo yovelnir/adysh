@@ -8,6 +8,8 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib import messages
 from django.urls import reverse
+from reportlab.pdfgen.canvas import Canvas
+import os
 
 
 config = {
@@ -23,6 +25,7 @@ config = {
 firebase = pyrebase.initialize_app(config)
 authe = firebase.auth()
 database = firebase.database()
+storage = firebase.storage()
 
 def postLogin(request):
     if request.session.get('uid'):
@@ -179,6 +182,7 @@ def inventory_stock(request):
     inventory = database.child('Inventory').get()
     filter = '0'
     bad_serial_token = "" 
+    request.session['bad_serial'] = 0
 
 
 
@@ -333,8 +337,6 @@ def student_courses(request):
     email = request.session['email']
     name = email[:email.index("@")]
 
-    
-
     items = list()
     courses_list = list()
     courses_db = database.child('users').child('students').child(name).child('courses').get()
@@ -342,9 +344,33 @@ def student_courses(request):
         if c is not None:
             courses_list.append(c.val())
     all_courses = database.child('Courses').get()
+ 
+
     for c in all_courses.each():
         c_name = c.key()
         if c_name is not None:
             if c_name in courses_list:
-                items.append((c_name, 200))
+                
+                # creating pdf file
+                pdf_data = []
+                products = database.child('Courses').child(c.key()).child('requirements').get()
+                for p in products.each():
+                    if p is not None:
+                        pdf_data.append((p.key(), p.val()))
+                name = f'{c_name} requierments list.pdf'
+                new_file = Canvas(name)
+                new_file.setFont('Helvetica', 14)
+                new_file.setTitle('Requiermants list')
+                new_file.drawCentredString(300, 750, name[:name.index(".")])
+                text = new_file.beginText(60, 720)
+                current_dir = os.getcwd()
+                current_dir = f'{current_dir}\{name}'
+                for line in pdf_data:
+                    text.textLine(f'{line[0]}: {line[1]}')
+                new_file.drawText(text)
+                new_file.save()
+
+                #pdf_path = 'adysh-d6408.appspot.com/requirements list'
+                storage.child('pdf files').put(current_dir, name)
+                items.append((c_name, (p.key(), p.val())))
     return render(request, "student_courses.html", {'items':items})
