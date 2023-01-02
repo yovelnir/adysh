@@ -31,4 +31,6 @@ urlpatterns = [
     path('delete_user/',views.remove_user, name='delete_user'),
     path('logout/', views.logout, name='logout'),
     path('submit_an_order_ASM/',views.submit_an_order_ASM,name='submit_an_order_ASM')
+    path('logout/', views.logout, name='logout'), 
+    
 ]

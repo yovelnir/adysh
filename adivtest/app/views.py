@@ -7,6 +7,7 @@ from django.db import IntegrityError
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib import messages
+from django.urls import reverse
 
 
 config = {
@@ -24,21 +25,26 @@ authe = firebase.auth()
 database = firebase.database()
 
 def postLogin(request):
-    email = request.POST.get('email')
-    pasw = request.POST.get('pass')
-    try:
-        user = authe.sign_in_with_email_and_password(email,pasw)
-    except:
-        message = "Invalid User! Please check email and password"
-        return render(request,"login.html",{"message":message})
+    if request.session.get('uid'):
+        email = request.session['email']
+        short_mail = email[:email.index("@")]
+    else:
+        email = request.POST.get('email')
+        pasw = request.POST.get('pass')
+        
+        try:
+            user = authe.sign_in_with_email_and_password(email,pasw)
+        except:
+            message = "Invalid User! Please check email and password"
+            return render(request,"login.html",{"message":message})
 
-    ser_data = database.child('users').get()
-    #----Saving user session id----
-    session_id = user['idToken']
-    request.session['uid']=str(session_id)
-    #----Saving user's email in the current session to access database in other pages
-    request.session['email']=str(email)
-    short_mail = email[:email.index('@')]
+        ser_data = database.child('users').get()
+        #----Saving user session id----
+        session_id = user['idToken']
+        request.session['uid']=str(session_id)
+        #----Saving user's email in the current session to access database in other pages
+        request.session['email']=str(email)
+        short_mail = email[:email.index('@')]
 
     #----Checking user's role----
     if short_mail in database.child('users').child('students').get().val():
@@ -51,6 +57,10 @@ def postLogin(request):
         user_data = database.child('users').child('staff').child(short_mail).get().val()
         request.session['role'] = 'staff'
 
+    if request.session.get('msg'):
+        user_data['msg'] = request.session.get('msg')
+        del request.session['msg']
+
     #----Rendering home page based on user's role----
     if request.session['role'] == 'students':
         return render(request,"main_Student.html",user_data)
@@ -60,15 +70,19 @@ def postLogin(request):
         return render(request,"main_ASM.html",user_data)
 
 def login_page(request):
+    #----Checking if there is already a user logged in----
+    if request.session.get('uid'):
+        return redirect('/home')
+
     return render(request, 'login.html')
 
 def logout(request):
     try:
         del request.session['uid']
+        message = 'Successfully Logged Out!'
     except:
         pass
-    render(request, "login.html")
-    return HttpResponseRedirect('/')
+    return render(request, "login.html", {"message":message})
 
 def main_Student(request): 
     return render(request, 'main_Student.html')
@@ -79,7 +93,6 @@ def main_ASM(request):
 def create_user(request):
     #-----Getting current session user data-----#
     email = request.session['email']
-    user_data = database.child('users').child(request.session['role']).child(email[:email.index('@')]).get().val()
     #-----Getting current session user data-----#
 
     full_name = "{} {}".format(request.POST.get('fname'),request.POST.get('lname'))
@@ -93,28 +106,29 @@ def create_user(request):
         if role == 1:
             user = authe.create_user_with_email_and_password(email, password)
             database.child('users').child('students').child(short_mail).set({
-                'idToken': user['idToken'],
                 'full_name': full_name,
                 'id': num_id,
+                'password': password,
             })
         elif role == 2:
             user = authe.create_user_with_email_and_password(email, password)
             database.child('users').child('managers').child(short_mail).set({
-                'idToken': user['idToken'],
                 'full_name': full_name,
                 'id': num_id,
+                'password': password,
             })
         elif role == 3:
             user = authe.create_user_with_email_and_password(email, password)
             database.child('users').child('staff').child(short_mail).set({
-                'idToken': user['idToken'],
                 'full_name': full_name,
                 'id': num_id,
+                'password': password,
             })
+        request.session['msg'] = 'User {} was created successfully!'.format(full_name)
     else:
-        user_data['msg'] = "User already exists!"
+        request.session['msg'] = 'User already exists!'
     
-    return render(request,"main_Wmanager.html", user_data)
+    return redirect('/home')
 
 def remove_user(request):
     #-----Getting current session user data-----#
@@ -124,19 +138,24 @@ def remove_user(request):
 
     email = request.POST.get('email')
     if email != request.session['email']:
+        password = None
         short_mail = email[:email.index('@')]
         if short_mail in database.child('users').child('students').get().val():
-            idToken = database.child('users').child('students').child(short_mail).child('idToken').get().val()
+            full_name = database.child('users').child('students').child(short_mail).child('full_name').get().val()
+            password = database.child('users').child('students').child(short_mail).child('password').get().val()
             role = 1
         elif short_mail in database.child('users').child('managers').get().val():
-            idToken = database.child('users').child('managers').child(short_mail).child('idToken').get().val()
+            full_name = database.child('users').child('managers').child(short_mail).child('full_name').get().val()
+            password = database.child('users').child('managers').child(short_mail).child('password').get().val()
             role = 2
         elif short_mail in database.child('users').child('staff').get().val():
-            idToken = database.child('users').child('staff').child(short_mail).child('idToken').get().val()
+            full_name = database.child('users').child('staff').child(short_mail).child('full_name').get().val()
+            password = database.child('users').child('staff').child(short_mail).child('password').get().val()
             role = 3
             
-        if idToken:
-            authe.delete_user_account(idToken)
+        if password:
+            user = authe.sign_in_with_email_and_password(email,password)
+            authe.delete_user_account(user['idToken'])
 
             if role == 1:
                 database.child('users').child('students').child(short_mail).remove()
@@ -144,29 +163,38 @@ def remove_user(request):
                 database.child('users').child('managers').child(short_mail).remove()
             elif role == 3:
                 database.child('users').child('staff').child(short_mail).remove()
-
+            request.session['msg'] = 'User {} was removed successfully!'.format(full_name)
         else:
-            user_data['msg'] = "User does not exist."
+            request.session['msg'] = "User does not exist!"
     else:
-        user_data['msg'] = "You cannot remove your self!"
+        request.session['msg'] = 'You cannot delete yourself!'
 
-    return render(request,"main_Wmanager.html", user_data)
+    return redirect('/home')
 
     
 
 def inventory_stock(request):
+    items = list()  
     role = request.session['role'] #role to know which table to render
-    
     inventory = database.child('Inventory').get()
+    filter = '0'
+    bad_serial_token = "" 
+
+
 
     if 'InStock' in request.POST: 
         filter = request.POST['InStock'] 
     elif 'OutOfStock' in request.POST:
-        filter = request.POST['OutOfStock']
-    else: 
-        filter = '0'
-    items = list()
+        filter = request.POST['OutOfStock'] 
+    elif 'btn_save_edit' in request.POST: 
+        editInventory(request)             
+    elif 'btn_remove_edit' in request.POST: 
+        removeInventory(request) 
     
+    if request.session['bad_serial'] == -1:
+        request.session['bad_serial'] = 0
+        bad_serial_token = 'Serial Number does not exist!'
+
 #======================================= table for academic staff member ======================================
     if role == 'staff':
     #========InStock   
@@ -206,7 +234,7 @@ def inventory_stock(request):
         if filter == '1': 
             for i in inventory.each(): 
                 if database.child('Inventory').child(i.key()).child('Quantity').get().val() is not None:
-                    if database.child('Inventory').child(i.key()).child('Quantity').get().val() > 0:
+                    if int(database.child('Inventory').child(i.key()).child('Quantity').get().val()) > 0:
                         product_serial = i.key() 
                         product_location = database.child('Inventory').child(i.key()).child('Physical_Location').get().val()
                         product_name = database.child('Inventory').child(i.key()).child('product_name').get().val()
@@ -218,11 +246,12 @@ def inventory_stock(request):
         if filter == '2':
             for i in inventory.each(): 
                 if database.child('Inventory').child(i.key()).child('Quantity').get().val() is not None:
-                    if database.child('Inventory').child(i.key()).child('Quantity').get().val() == 0: 
+                    if int(database.child('Inventory').child(i.key()).child('Quantity').get().val()) == 0: 
                         product_serial = i.key() 
                         product_location = database.child('Inventory').child(i.key()).child('Physical_Location').get().val()
                         product_name = database.child('Inventory').child(i.key()).child('product_name').get().val()
-                        product_amount = database.child('Inventory').child(i.key()).child('Quantity').get().val()
+                        product_amount = database.child('Inventory').child(i.key()).child('Quantity').get().val() 
+
                         items.append((product_name,product_amount,product_serial,product_location,role))
                         
             return render(request, "inventory_stock_Manager.html", {'items':items})  
@@ -235,7 +264,74 @@ def inventory_stock(request):
                 product_amount = database.child('Inventory').child(i.key()).child('Quantity').get().val()
                 items.append((product_name,product_amount,product_serial,product_location,role)) 
                 
-            return render(request, "inventory_stock_Manager.html", {'items':items})
+            return render(request, "inventory_stock_Manager.html", {'items':items, 'error': bad_serial_token})
+
+
+
+def editInventory(request):
+
+    inventory = database.child('Inventory').get() 
+    serial_number = request.POST['serial_number'] 
+    serial_flag = False 
+      
+    # ======= check if serial number exist 
+    for key in inventory.each(): 
+        if int(serial_number) == key.key(): 
+            serial_flag = True 
+    
+    if serial_flag == False: 
+        request.session['bad_serial'] = -1 
+      
+    else:
+        # ======= set the fields to user requset
+        if request.POST['product_name'] != "":
+            new_product_name = request.POST['product_name'] 
+        else: 
+            new_product_name = database.child('Inventory').child(serial_number).child('product_name').get().val()
+        
+        if request.POST['quantity'] != "":
+            new_quantity = request.POST['quantity']  
+        else: 
+            new_quantity = database.child('Inventory').child(serial_number).child('Quantity').get().val()
+
+        if request.POST['product_location'] != "":
+            new_product_location = request.POST['product_location']  
+        else: 
+            new_product_location = database.child('Inventory').child(serial_number).child('Physical_Location').get().val()
+        
+
+        # =========== updating DB      
+        database.child('Inventory').child(serial_number).update({'product_name': new_product_name})
+        database.child('Inventory').child(serial_number).update({'Physical_Location': new_product_location})  
+        database.child('Inventory').child(serial_number).update({'Quantity': int(new_quantity)}) 
+                    
+        return render(request,"inventory_stock_Manager.html")
+
+
+    
+def removeInventory(request): 
+
+    inventory = database.child('Inventory').get() 
+    serial_number = request.POST['serial_number'] 
+    serial_flag = False 
+      
+    # ======= check if serial number exist 
+    for key in inventory.each(): 
+        if serial_number == key.key(): 
+            serial_flag = True
+    
+    if serial_flag == False: 
+        request.session['bad_serial'] = -1  
+
+    else:  
+        database.child('Inventory').child(serial_number).remove() 
+        return render(request,"inventory_stock_Manager.html")
+    
+
+
+
+
+
 
 #----------------------------------------------US3 ASM order submition--------------------
 
