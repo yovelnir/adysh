@@ -9,6 +9,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib import messages
 from django.urls import reverse
 from reportlab.pdfgen.canvas import Canvas
+from reportlab.lib.pagesizes import A4
 import os
 import firebase_admin
 from firebase_admin import credentials, storage
@@ -468,41 +469,38 @@ def remove_from_course(request):
 def student_courses(request):
     email = request.session['email']
     name = email[:email.index("@")]
-
     items = list()
     courses_list = list()
     courses_db = database.child('users').child('students').child(name).child('courses').get()
+    all_courses = database.child('Courses').get()
+
     for c in courses_db.each():
         if c is not None:
             courses_list.append(c.val())
-    all_courses = database.child('Courses').get()
     for c in all_courses.each():
         c_name = c.key()
         if c_name is not None:
             if c_name in courses_list:
-                
-                # creating pdf file
+                name_w_pdf = f'{c_name} requirements list.pdf'
+                current_dir = f'{os.getcwd()}\{name_w_pdf}'
                 pdf_data = []
-                products = database.child('Courses').child(c.key()).child('requirements').get()
+                products = database.child('Courses').child(c_name).child('requirements').get()
                 for p in products.each():
                     if p is not None:
                         pdf_data.append((p.key(), p.val()))
-                name = f'{c_name} requierments list'
-                name_w_pdf = f'{name}.pdf'
+                
                 new_file = Canvas(name_w_pdf)
-                new_file.setFont('Helvetica', 14)
-                new_file.setTitle('Requiermants list')
-                new_file.drawCentredString(300, 750, name)
-                text = new_file.beginText(60, 720)
-                current_dir = os.getcwd()
-                current_dir = f'{current_dir}\{name_w_pdf}'
+                new_file.setFont('Courier-Bold', 12)
+                image = f'{os.getcwd()}/app/static/SCE_logo.png'
+                new_file.drawCentredString(300, 720, name_w_pdf[:name_w_pdf.index(".")])
+                new_file.setFont('Courier', 12)
+                width, height = 110,50
+                new_file.drawImage(image, (A4[0] - width) / 2, 750, width=width, height=height, mask = 'auto')
+                text = new_file.beginText(60, 680)
                 for line in pdf_data:
                     text.textLine(f'{line[0]}: {line[1]}')
                 new_file.drawText(text)
                 new_file.save()
-                #pdf_path = 'adysh-d6408.appspot.com/requirements list'
-                #storage.child('pdf files').put(current_dir, name)
-                #items.append((c_name, (p.key(), p.val())))
                 storage1.child(name_w_pdf).put(current_dir, name_w_pdf)
                 bucket = storage.bucket()
                 blob = bucket.blob(name_w_pdf)
