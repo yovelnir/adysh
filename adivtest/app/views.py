@@ -502,6 +502,7 @@ def student_courses(request):
                 new_file.drawText(text)
                 new_file.save()
                 storage1.child(name_w_pdf).put(current_dir, name_w_pdf)
+                os.remove(f"{name_w_pdf}")
                 bucket = storage.bucket()
                 blob = bucket.blob(name_w_pdf)
                 signed_url = blob.generate_signed_url(
