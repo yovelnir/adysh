@@ -8,6 +8,12 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib import messages
 from django.urls import reverse
+from reportlab.pdfgen.canvas import Canvas
+from reportlab.lib.pagesizes import A4
+import os
+import firebase_admin
+from firebase_admin import credentials, storage
+from datetime import timedelta
 
 
 config = {
@@ -23,6 +29,13 @@ config = {
 firebase = pyrebase.initialize_app(config)
 authe = firebase.auth()
 database = firebase.database()
+storage1 = firebase.storage()
+current_dir = os.getcwd()
+cred = credentials.Certificate(f'{current_dir}/adysh-d6408-firebase-adminsdk-sd2zj-393e99226b.json')
+firebase_admin.initialize_app(cred, {
+    'storageBucket': 'adysh-d6408.appspot.com'
+})
+
 
 def postLogin(request):
     if request.session.get('uid'):
@@ -38,15 +51,15 @@ def postLogin(request):
             message = "Invalid User! Please check email and password"
             return render(request,"login.html",{"message":message})
 
-        ser_data = database.child('users').get()
-        #----Saving user session id----
+        #----Saving user session id----#
         session_id = user['idToken']
         request.session['uid']=str(session_id)
-        #----Saving user's email in the current session to access database in other pages
+
+        #----Saving user's email in the current session to access database in other pages----#
         request.session['email']=str(email)
         short_mail = email[:email.index('@')]
 
-    #----Checking user's role----
+    #----Checking user's role----#
     if short_mail in database.child('users').child('students').get().val():
         user_data = database.child('users').child('students').child(short_mail).get().val()
         request.session['role'] = 'students'
@@ -57,20 +70,28 @@ def postLogin(request):
         user_data = database.child('users').child('staff').child(short_mail).get().val()
         request.session['role'] = 'staff'
 
+    #----Checking if any message needs to be displayed----#
     if request.session.get('msg'):
         user_data['msg'] = request.session.get('msg')
         del request.session['msg']
 
-    #----Rendering home page based on user's role----
+    #----Getting inventory from database----#
+    inventory = database.child('Inventory').get().val()
+    user_data['inventory'] = inventory
+
+    #----Rendering home page based on user's role----#
     if request.session['role'] == 'students':
         return render(request,"main_Student.html",user_data)
     elif request.session['role'] == 'managers':
+        user_data['courses'] = database.child('Courses').get().val()
         return render(request,"main_Wmanager.html",user_data)
     elif request.session['role'] == 'staff':
+        user_data['courses'] = database.child('Courses').get().val()
+        user_data['students'] = database.child('users').child('students').get().val()
         return render(request,"main_ASM.html",user_data)
 
 def login_page(request):
-    #----Checking if there is already a user logged in----
+    #----Checking if there is already a user logged in----#
     if request.session.get('uid'):
         return redirect('/home')
 
@@ -104,26 +125,38 @@ def create_user(request):
     and short_mail not in database.child('users').child('staff').get().val() \
     and short_mail not in database.child('users').child('managers').get().val():
         if role == 1:
-            user = authe.create_user_with_email_and_password(email, password)
+            #----Creating Student User in Database----#
+            if request.POST.getlist('courses'):
+                courses = request.POST.getlist('courses')
+            else:
+                courses = None
+            authe.create_user_with_email_and_password(email, password)
             database.child('users').child('students').child(short_mail).set({
                 'full_name': full_name,
                 'id': num_id,
                 'password': password,
             })
+            if courses:
+                database.child('users').child('students').child(short_mail).child('courses').set(courses)
+            #----Creating Student User in Database----#
         elif role == 2:
-            user = authe.create_user_with_email_and_password(email, password)
+            #----Creating Warehouse Manager User in Database----#
+            authe.create_user_with_email_and_password(email, password)
             database.child('users').child('managers').child(short_mail).set({
                 'full_name': full_name,
                 'id': num_id,
                 'password': password,
             })
+            #----Creating Warehouse Manager User in Database----#
         elif role == 3:
-            user = authe.create_user_with_email_and_password(email, password)
+            #----Creating Academic Staff Member User in Database----#
+            authe.create_user_with_email_and_password(email, password)
             database.child('users').child('staff').child(short_mail).set({
                 'full_name': full_name,
                 'id': num_id,
                 'password': password,
             })
+            #----Creating Academic Staff Member User in Database----#
         request.session['msg'] = 'User {} was created successfully!'.format(full_name)
     else:
         request.session['msg'] = 'User already exists!'
@@ -133,30 +166,43 @@ def create_user(request):
 def remove_user(request):
     #-----Getting current session user data-----#
     email = request.session['email']
-    user_data = database.child('users').child(request.session['role']).child(email[:email.index('@')]).get().val()
     #-----Getting current session user data-----#
 
     email = request.POST.get('email')
     if email != request.session['email']:
+        #----Checking which role is trying to remove a user ASM or WM----#
+        if request.POST.get('staff'):
+            flag = 0
+        else:
+            flag = 1   
+        
         password = None
         short_mail = email[:email.index('@')]
+
         if short_mail in database.child('users').child('students').get().val():
+            #----Checking if user is under Students in database----#
             full_name = database.child('users').child('students').child(short_mail).child('full_name').get().val()
             password = database.child('users').child('students').child(short_mail).child('password').get().val()
             role = 1
-        elif short_mail in database.child('users').child('managers').get().val():
+        elif short_mail in database.child('users').child('managers').get().val() and flag:
+            #----Checking if user is under Warehouse Manager in database----#
             full_name = database.child('users').child('managers').child(short_mail).child('full_name').get().val()
             password = database.child('users').child('managers').child(short_mail).child('password').get().val()
             role = 2
-        elif short_mail in database.child('users').child('staff').get().val():
+        elif short_mail in database.child('users').child('staff').get().val() and flag:
+            #----Checking if user is under Academic Staff Members in database----#
             full_name = database.child('users').child('staff').child(short_mail).child('full_name').get().val()
             password = database.child('users').child('staff').child(short_mail).child('password').get().val()
             role = 3
             
         if password:
+            #----If user exists under one of the roles in the database----#
+            #----Loging in to the user's account to get refreshed idToken----#
             user = authe.sign_in_with_email_and_password(email,password)
+            #----Deleting the user from the database----#
             authe.delete_user_account(user['idToken'])
 
+            #----Removing user info from the database based on his role----#
             if role == 1:
                 database.child('users').child('students').child(short_mail).remove()
             elif role == 2:
@@ -165,7 +211,10 @@ def remove_user(request):
                 database.child('users').child('staff').child(short_mail).remove()
             request.session['msg'] = 'User {} was removed successfully!'.format(full_name)
         else:
-            request.session['msg'] = "User does not exist!"
+            if not flag:
+                request.session['msg'] = "User does not exist or you are trying to remove a user that is not a Student!"
+            else:
+                request.session['msg'] = "User does not exist!"
     else:
         request.session['msg'] = 'You cannot delete yourself!'
 
@@ -179,6 +228,8 @@ def inventory_stock(request):
     inventory = database.child('Inventory').get()
     filter = '0'
     bad_serial_token = "" 
+    request.session['bad_serial'] = 0
+    request.session['bad_serial'] = 0
 
 
 
@@ -186,14 +237,20 @@ def inventory_stock(request):
         filter = request.POST['InStock'] 
     elif 'OutOfStock' in request.POST:
         filter = request.POST['OutOfStock'] 
-    elif 'btn_save_edit' in request.POST: 
+    elif 'btn_save_edit' in request.POST:    
         editInventory(request)             
     elif 'btn_remove_edit' in request.POST: 
         removeInventory(request) 
+    elif 'btn_save_new' in request.POST: 
+        NewItemInventory(request)
     
+
     if request.session['bad_serial'] == -1:
         request.session['bad_serial'] = 0
-        bad_serial_token = 'Serial Number does not exist!'
+        bad_serial_token = 'Serial Number does not exist!' 
+    if request.session['bad_serial'] == -2:
+        request.session['bad_serial'] = 0
+        bad_serial_token = 'Serial Number already exist!'
 
 #======================================= table for academic staff member ======================================
     if role == 'staff':
@@ -276,7 +333,7 @@ def editInventory(request):
       
     # ======= check if serial number exist 
     for key in inventory.each(): 
-        if int(serial_number) == key.key(): 
+        if int(serial_number) == int(key.key()): 
             serial_flag = True 
     
     if serial_flag == False: 
@@ -314,12 +371,13 @@ def removeInventory(request):
     inventory = database.child('Inventory').get() 
     serial_number = request.POST['serial_number'] 
     serial_flag = False 
-      
+    
     # ======= check if serial number exist 
     for key in inventory.each(): 
-        if serial_number == key.key(): 
-            serial_flag = True
-    
+        if int(serial_number) == int(key.key()): 
+            serial_flag = True 
+
+        
     if serial_flag == False: 
         request.session['bad_serial'] = -1  
 
@@ -329,6 +387,62 @@ def removeInventory(request):
     
 
 
+def send_requirements(request):
+    requirements = {}
+    quantity = request.POST.getlist("quantity")
+    #----Removing all empty or 0 values from quantities----#
+    i = 0
+    while "" in quantity or "0" in quantity:
+        if quantity[i] == "" or quantity[i] == "0":
+            quantity.pop(i)
+        else:
+            i+=1
+
+    #----Creating dictionary with course name as key and quantities as value----#
+    for k in request.POST.getlist("reqBox"):
+        if quantity:
+            requirements[k] = int(quantity[0])
+            quantity.pop(0)
+
+    course = database.child("Courses").child(request.POST.get("course"))
+    course.child("requirements").set(requirements)
+
+    request.session['msg'] = "Requirements for course " + request.POST.get("course") + " have been sent!"
+    
+    return redirect('/home')
+
+def NewItemInventory(request): 
+    
+    inventory = database.child('Inventory').get() 
+    serial_number = request.POST['serial_number'] 
+    serial_flag = False 
+      
+    # ======= check if serial number exist 
+    for key in inventory.each(): 
+        if int(serial_number) == int(key.key()):  
+            serial_flag = True
+        
+    
+    if serial_flag == True: 
+        request.session['bad_serial'] = -2
+
+    else:  
+        new_product_name = request.POST['product_name']
+        new_quantity = request.POST['quantity'] 
+        new_product_location = request.POST['product_location']
+        new_consumable = request.POST['consumable']
+
+
+        data = { 
+            'product_name': new_product_name,
+            'Physical_Location': new_product_location, 
+            'Quantity': int(new_quantity),
+            'Consumable': new_consumable
+        }
+
+        database.child('Inventory').child(serial_number).update(data)
+                 
+    return render(request,"inventory_stock_Manager.html")
 
 
 
@@ -336,4 +450,91 @@ def removeInventory(request):
 #----------------------------------------------US3 ASM order submition--------------------
 
 def submit_an_order_ASM(request):
-    return render(request,"submit_an_order_ASM.html")
+        return render(request,"submit_an_order_ASM.html")
+
+
+
+def remove_from_course(request):
+    #----Getting all courses and the students posted from the form----#
+    courses = request.POST.getlist("courseRemove")
+    student = request.POST.get("student")
+
+    #----Getting the courses of the selcted student from the database----#
+    student_courses = database.child('users').child('students').child(student).child('courses').get().val()
+
+    #----Creating new list with all courses that were not selected in the form posted----#
+    student_courses = [course for course in student_courses if course not in courses]
+    
+    #----Updating courses for the student with the new list that was created----#
+    database.child('users').child('students').child(student).child('courses').set(student_courses)
+
+    full_name = database.child('users').child('students').child(student).get().val()['full_name']
+
+    request.session['msg'] = full_name + " was removed from courses " + str(courses)
+
+    return redirect('/home')
+
+def student_courses(request):
+    email = request.session['email']
+    name = email[:email.index("@")]
+    items = list()
+    courses_list = list()
+    courses_db = database.child('users').child('students').child(name).child('courses').get()
+    all_courses = database.child('Courses').get()
+
+    for c in courses_db.each():
+        if c is not None:
+            courses_list.append(c.val())
+    for c in all_courses.each():
+        c_name = c.key()
+        if c_name is not None:
+            if c_name in courses_list:
+                name_w_pdf = f'{c_name} requirements list.pdf'
+                current_dir = f'{os.getcwd()}\{name_w_pdf}'
+                pdf_data = []
+                products = database.child('Courses').child(c_name).child('requirements').get()
+                for p in products.each():
+                    if p is not None:
+                        pdf_data.append((p.key(), p.val()))
+                
+                new_file = Canvas(name_w_pdf)
+                new_file.setFont('Courier-Bold', 12)
+                image = f'{os.getcwd()}/app/static/SCE_logo.png'
+                new_file.drawCentredString(300, 720, name_w_pdf[:name_w_pdf.index(".")])
+                new_file.setFont('Courier', 12)
+                width, height = 110,50
+                new_file.drawImage(image, (A4[0] - width) / 2, 750, width=width, height=height, mask = 'auto')
+                text = new_file.beginText(60, 680)
+                for line in pdf_data:
+                    text.textLine(f'{line[0]}: {line[1]}')
+                new_file.drawText(text)
+                new_file.save()
+                storage1.child(name_w_pdf).put(current_dir, name_w_pdf)
+                os.remove(f"{name_w_pdf}")
+                bucket = storage.bucket()
+                blob = bucket.blob(name_w_pdf)
+                signed_url = blob.generate_signed_url(
+                    version='v4',
+                    expiration=timedelta(hours=1),
+                    method='GET'
+                )
+                items.append((c_name, signed_url))
+    return render(request, "student_courses.html", {'items':items})
+
+
+def ordering_existing_items(request):
+    
+    # inventory = database.child('Inventory').get()
+    # user_id=request.session['id']
+    # id_db=database.child('orders')
+    # for item in id_db.each():
+    #     if item==user_id:
+    #         print("order exist,wait to aproval")
+    #         ####need to write an error massege that there is an order in waiting
+    #     else:
+    #         database.child("orders").child("user_id").set()
+    #         order_dict={'date':0,'status':'pending','role':3}
+
+    return render(request,"ordering_existing_items_ASM.html")
+            
+

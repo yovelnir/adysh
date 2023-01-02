@@ -18,9 +18,10 @@
                 <div id="button_container">
                     <form action="" method="POST">  
                         {% csrf_token %}
-                        <button class="btn_filter" type="submit" name="Order existing items" value="0"> Order existing items</button>
-                        <button class="btn_filter" type="submit" name="Order new items" value="1"> Order new items</button>
-                        <button class="btn_filter" type="submit" name="Order status" value="2"> Order status</button>
+                        <a href = "{% url 'ordering_existing_items' %}">
+                        <div class="tab"><h2 id="tab_text">Ordering existing items</h2></div></a>
+                        <div class="tab"><h2 id="tab_text">Order new items</h2></div>
+                        <div class="tab"><h2 id="tab_text">Order status</h2></div>
                     </form>   
                 </div>
             </div>

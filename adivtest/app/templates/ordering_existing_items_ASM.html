@@ -1,0 +1,44 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="{% static 'styles.css' %}">
+        <link rel="stylesheet" href="{% static 'inventory_stock.css' %}">
+        <title>Order Exist item</title>
+    </head>
+
+    <body>
+    
+  
+        <div class="main_container">
+          
+          <!-- back button -->
+          <a href="{% url 'home' %}">
+            <button type="submit" id="btn_back">
+              <img src="{% static 'back_arrow.png' %}" id="btn_back_img" alt="back arrow">
+              <p id="back_text">Back</p>
+            </button>
+          </a> 
+          <!-- SCE Logo -->
+          <div class="imgcontainer">
+            <img src="{% static 'SCE_logo.png' %}" alt="Avatar" class="avatar"/>
+          </div>
+          
+      <table>
+        <thead>
+            <tr>
+              <th>Product Name</th>
+              <th>Quantity</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for product_name,product_amount,role in items %} 
+            {% if product_name != None %}
+            <tr>
+                <td>{{ product_name }}</td>
+               {% endif %}
+               {% endfor %}
+      </table>    
