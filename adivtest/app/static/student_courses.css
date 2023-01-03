@@ -3,6 +3,7 @@ body{
     background-color: rgb(236, 234, 234);
 }
 .img_container {
+    width:25%;
     text-align: center;
     margin: auto;
     display: flex;
