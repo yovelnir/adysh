@@ -13,7 +13,9 @@ from reportlab.lib.pagesizes import A4
 import os
 import firebase_admin
 from firebase_admin import credentials, storage
+import datetime
 from datetime import timedelta
+from calendar import monthrange
 
 
 config = {
@@ -512,3 +514,70 @@ def student_courses(request):
                 )
                 items.append((c_name, signed_url))
     return render(request, "student_courses.html", {'items':items})
+
+
+def pickup(request):
+    items = list()
+    email = request.session['email']
+    name = email[:email.index("@")]
+    id = str(database.child('users').child(request.session['role']).child(name).child('id').get().val())
+    #all_orders = database.child('orders').get()
+    #orders_id = list()
+
+    #for order in all_orders.each():
+    #    orders_id.append(order.key())
+    
+    if id in database.child('orders').get().val():
+        if database.child('orders').child(id).child('status').get().val() == 'approved':
+            today = datetime.date.today()
+            day = today.day
+            month = today.month
+            year = today.year
+            create_schedule_db(month, year)
+            counter = 0
+            while counter < 10:
+                days = database.child('Schedule').child(year).child(month).get()
+                for d in days.each():
+                    if counter == 10:
+                        break
+                    if d is not None:
+                        hours_list = list()
+                        hours = database.child('Schedule').child(year).child(month).child(day).get()
+                        for h in hours.each():
+                            if h.val() == 0:
+                                hours_list.append(h.key())
+                
+                        items.append((f'{d}/{month}', len(hours_list)))
+                    counter = counter + 1
+                if counter < 10:
+                    month = month + 1
+                    if month == 13:
+                        year = year + 1
+                        create_schedule_db(month, year)
+    else:
+        items.append(('no order is approved',id))
+    return render(request, "pickup.html", {'items':items})             
+
+            
+
+def create_schedule_db(month1, year1):
+    times = {}
+    for hour in range(10, 18):
+        minuts = 0
+        for i in range(0, 4):
+            if minuts < 10:
+                times[f'{hour}:0{minuts}'] = 0
+            else:
+                times[f'{hour}:{minuts}'] = 0
+            minuts = minuts + 15
+
+    for m in range(1, 13):
+        days = list()
+        for d in range(1, monthrange(year1, m)[1] + 1):
+            obj = datetime.datetime(year=year1, month=m, day=d)
+            if obj.weekday() <= 3 or obj.weekday() == 6:
+                days.append(d)
+        
+        for x in days:            
+            database.child('Schedule').child(year1).child(m).child(str(x)).set(times)       
+        days.clear()        

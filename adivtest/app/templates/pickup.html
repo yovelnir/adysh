@@ -1,0 +1,59 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static 'styles.css' %}">
+    <link rel="stylesheet" href="{% static 'inventory_stock.css' %}">
+    <title>Stock Page</title>
+<head> 
+  
+  <body>
+    
+  
+    <div class="main_container">
+      
+      <!-- back button -->
+      <a href="{% url 'home' %}">
+        <button type="submit" id="btn_back">
+          <img src="{% static 'back_arrow.png' %}" id="btn_back_img" alt="back arrow">
+          <p id="back_text">Back</p>
+        </button>
+      </a> 
+      <!-- SCE Logo -->
+      <div class="imgcontainer">
+        <img src="{% static 'SCE_logo.png' %}" alt="Avatar" class="avatar"/>
+      </div>
+       
+      <!-- Table for academic staff members -->
+        
+        <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Hour</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!--{% for item in items %}-->
+                {% for date,time in items %} 
+                  {% if date != None %}
+                    <tr>
+                    <td>{{ date }}</td>
+                    <td> {{ time }}</td>
+                    </tr>
+                    {% endif %}
+                  {% endfor %}
+                <!--{% endfor %}-->
+            </tbody>
+          </table> 
+         
+          <div id="banner"><h3>ADYSH</h3></div>
+      </div>
+    </form>
+
+     
+</body>
+</html>

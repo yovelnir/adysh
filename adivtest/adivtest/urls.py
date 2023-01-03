@@ -32,5 +32,6 @@ urlpatterns = [
     path('send_requirements/',views.send_requirements, name='send_requirements'),
     path('remove_from_course/', views.remove_from_course, name='remove_from_course'),
     path('logout/', views.logout, name='logout'), 
-    path('student_courses/', views.student_courses, name='student_courses')
+    path('student_courses/', views.student_courses, name='student_courses'),
+    path('pickup/', views.pickup, name = 'pickup')
 ]
