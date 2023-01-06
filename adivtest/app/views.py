@@ -524,17 +524,16 @@ def student_courses(request):
 
 def ordering_existing_items(request):
     
-    # inventory = database.child('Inventory').get()
-    # user_id=request.session['id']
-    # id_db=database.child('orders')
-    # for item in id_db.each():
-    #     if item==user_id:
-    #         print("order exist,wait to aproval")
-    #         ####need to write an error massege that there is an order in waiting
-    #     else:
-    #         database.child("orders").child("user_id").set()
-    #         order_dict={'date':0,'status':'pending','role':3}
 
-    return render(request,"ordering_existing_items_ASM.html")
+    items = list()  
+    inventory = database.child('Inventory').get()
+    for i in inventory.each():
+        product_name = database.child('Inventory').child(i.key()).child('product_name').get().val()
+        product_amount = database.child('Inventory').child(i.key()).child('Quantity').get().val()
+        # line to fill with the quantity problem
+        items.append((product_name,product_amount)) 
+                
+        return render(request, "ordering_existing_items_ASM.html", {'items':items}) 
+
             
 

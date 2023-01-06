@@ -6,7 +6,7 @@
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link rel="stylesheet" href="{% static 'styles.css' %}">
-        <link rel="stylesheet" href="{% static 'inventory_stock.css' %}">
+        <link rel="stylesheet" href="{% static 'ordering_existing_items_ASM.css' %}">
         <title>Order Exist item</title>
     </head>
 
@@ -27,18 +27,41 @@
             <img src="{% static 'SCE_logo.png' %}" alt="Avatar" class="avatar"/>
           </div>
           
-      <table>
-        <thead>
-            <tr>
-              <th>Product Name</th>
-              <th>Quantity</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for product_name,product_amount,role in items %} 
-            {% if product_name != None %}
-            <tr>
-                <td>{{ product_name }}</td>
-               {% endif %}
-               {% endfor %}
-      </table>    
+      
+          <table>
+            <thead>
+              <tr>
+                <th>Product Name</th>
+                <th>Quantity</th>
+                <th>Order Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for product_name,product_amount in items %} 
+              {% if product_name != None %}
+              <tr>
+                <td>{{ product_name }}</td> 
+                    {% if product_amount < 5 %}
+                    <td id = 'aboutToRunOut'>{{ product_amount }}</td> 
+                    {% else %} 
+                    <td>{{product_amount}}</td> 
+                    {% endif %}
+                    <td><label for="Name"></label>
+                      <input type="text" id="Name" name="Name" placeholder="Enter Amount"> 
+                      <button class="btn_filter" type="submit" name="Send Request" value="0">Send Request</button></td>
+                </tr>
+                {% endif %}
+                {% endfor %}
+            </tbody>
+          </table> 
+
+                   
+          <div id="banner"><h3>ADYSH</h3></div>
+      </div>
+    </form>
+
+     
+</body>
+</html>
+     
+          
