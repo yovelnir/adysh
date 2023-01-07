@@ -35,12 +35,14 @@ table{
     width: 100%; 
 }
 
+
 .btn_filter{ 
     display: inline; 
     background-color: #04AA6D;
     color: white;
     padding: 10px 15px;
-    margin: 8px 0;
+    margin:auto;
+    text-align: center;
     border: none; 
     border-radius: 5px;
     cursor: pointer; 

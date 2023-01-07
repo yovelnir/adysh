@@ -31,36 +31,37 @@
           <table>
             <thead>
               <tr>
-                <th>Product Name</th>
-                <th>Quantity</th>
                 <th>Order Amount</th>
+                <th>Quantity</th>
+              
+                
+                
               </tr>
             </thead>
             <tbody>
-              {% for product_name,product_amount in items %} 
-              {% if product_name != None %}
+              <form id="req_form" class ="req_form" action="{% url 'ordering_existing_items_request' %}" method="POST" onsubmit="submitBtn.disabled=true; submitBtn.value='Sending Request...'">
+                {% csrf_token %}
+                {% for product_name,product_amount in items %} 
+              <!-- {% if product_name != None %} -->
               <tr>
-                <td>{{ product_name }}</td> 
-                    {% if product_amount < 5 %}
-                    <td id = 'aboutToRunOut'>{{ product_amount }}</td> 
-                    {% else %} 
-                    <td>{{product_amount}}</td> 
-                    {% endif %}
-                    <td><label for="Name"></label>
-                      <input type="text" id="Name" name="Name" placeholder="Enter Amount"> 
-                      <button class="btn_filter" type="submit" name="Send Request" value="0">Send Request</button></td>
+                       <td><label for="Name"></label>
+                    <input class="reqBox" type="checkbox" id="reqBox[]" value="{{product_name}}" name="reqBox" />{{product_name}}
+                    
+                    <input class="Amount" id="Amount[]" name="Amount" type="number" min="0" max={{product_amount}} />
+                     <td>{{product_amount}}</td> 
                 </tr>
-                {% endif %}
+                <!-- {% endif %} -->
                 {% endfor %}
             </tbody>
           </table> 
-
-                   
+          <button class="btn_filter" type="submit" name="Send Request" value="0">Send Request</button>
+        
           <div id="banner"><h3>ADYSH</h3></div>
       </div>
     </form>
 
-     
+     <!-- Need to implement: *succes messege
+                             *you can fill amount only if you checked in checkbox  -->
 </body>
 </html>
      

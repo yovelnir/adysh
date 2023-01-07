@@ -35,5 +35,7 @@ urlpatterns = [
     path('remove_from_course/', views.remove_from_course, name='remove_from_course'),
     path('logout/', views.logout, name='logout'), 
     path('student_courses/', views.student_courses, name='student_courses'),
-    path('ordering_existing_items_ASM/',views.ordering_existing_items,name='ordering_existing_items')
+    path('ordering_existing_items_ASM/',views.ordering_existing_items_table,name='ordering_existing_items'),
+    path('ordering_existing_items_request/',views.ordering_existing_items_request,name='ordering_existing_items_request'),
+    
 ]
