@@ -224,28 +224,27 @@ def remove_user(request):
 
     
 
-def inventory_stock(request):
-    items = list()  
-    role = request.session['role'] #role to know which table to render
-    inventory = database.child('Inventory').get()
-    filter = '0'
+def inventory_stock(request): 
+
     bad_serial_token = "" 
     request.session['bad_serial'] = 0
-    request.session['bad_serial'] = 0
-
-
-
-    if 'InStock' in request.POST: 
-        filter = request.POST['InStock'] 
-    elif 'OutOfStock' in request.POST:
-        filter = request.POST['OutOfStock'] 
-    elif 'btn_save_edit' in request.POST:    
+    
+    if 'btn_save_edit' in request.POST:    
         editInventory(request)             
     elif 'btn_remove_edit' in request.POST: 
         removeInventory(request) 
     elif 'btn_save_new' in request.POST: 
         NewItemInventory(request)
+
+    items = list()  
+    role = request.session['role'] #role to know which table to render
+    inventory = database.child('Inventory').get().val()
+    filter = '0'
     
+    if 'InStock' in request.POST: 
+        filter = request.POST['InStock'] 
+    elif 'OutOfStock' in request.POST:
+        filter = request.POST['OutOfStock']
 
     if request.session['bad_serial'] == -1:
         request.session['bad_serial'] = 0
@@ -258,29 +257,29 @@ def inventory_stock(request):
     if role == 'staff':
     #========InStock   
         if filter == '1': 
-            for i in inventory.each(): 
-                if database.child('Inventory').child(i.key()).child('Quantity').get().val() is not None:
-                    if database.child('Inventory').child(i.key()).child('Quantity').get().val() > 0: 
-                        product_name = database.child('Inventory').child(i.key()).child('product_name').get().val()
-                        product_amount = database.child('Inventory').child(i.key()).child('Quantity').get().val()
+            for i in inventory: 
+                if inventory[i]["Quantity"] is not None:
+                    if inventory[i]["Quantity"] > 0: 
+                        product_name = inventory[i]["product_name"]
+                        product_amount = inventory[i]["Quantity"]
                         items.append((product_name,product_amount,role)) 
 
             return render(request, "inventory_stock_ASM.html", {'items':items})  
     #========OutOfStock
         if filter == '2': 
-            for i in inventory.each(): 
-                if database.child('Inventory').child(i.key()).child('Quantity').get().val() is not None:
-                    if database.child('Inventory').child(i.key()).child('Quantity').get().val() == 0: 
-                        product_name = database.child('Inventory').child(i.key()).child('product_name').get().val()
-                        product_amount = database.child('Inventory').child(i.key()).child('Quantity').get().val()
+            for i in inventory: 
+                if inventory[i]["Quantity"] is not None:
+                    if inventory[i]["Quantity"] == 0: 
+                        product_name = inventory[i]["product_name"]
+                        product_amount = inventory[i]["Quantity"]
                         items.append((product_name,product_amount,role)) 
 
             return render(request, "inventory_stock_ASM.html", {'items':items})  
     #========ShowAll Case
         else: 
-            for i in inventory.each():
-                product_name = database.child('Inventory').child(i.key()).child('product_name').get().val()
-                product_amount = database.child('Inventory').child(i.key()).child('Quantity').get().val()
+            for i in inventory:
+                product_name = inventory[i]["product_name"]
+                product_amount = inventory[i]["Quantity"]
                 items.append((product_name,product_amount,role)) 
                 
             return render(request, "inventory_stock_ASM.html", {'items':items}) 
@@ -291,36 +290,36 @@ def inventory_stock(request):
     else:   
         #========InStock   
         if filter == '1': 
-            for i in inventory.each(): 
-                if database.child('Inventory').child(i.key()).child('Quantity').get().val() is not None:
-                    if int(database.child('Inventory').child(i.key()).child('Quantity').get().val()) > 0:
-                        product_serial = i.key() 
-                        product_location = database.child('Inventory').child(i.key()).child('Physical_Location').get().val()
-                        product_name = database.child('Inventory').child(i.key()).child('product_name').get().val()
-                        product_amount = database.child('Inventory').child(i.key()).child('Quantity').get().val()
+            for i in inventory: 
+                if inventory[i]["Quantity"] is not None:
+                    if inventory[i]["Quantity"] > 0:
+                        product_serial = i 
+                        product_location = inventory[i]["Physical_Location"]
+                        product_name = inventory[i]["product_name"]
+                        product_amount = inventory[i]["Quantity"]
                         items.append((product_name,product_amount,product_serial,product_location,role)) 
 
             return render(request, "inventory_stock_Manager.html", {'items':items})  
     #========OutOfStock
         if filter == '2':
-            for i in inventory.each(): 
-                if database.child('Inventory').child(i.key()).child('Quantity').get().val() is not None:
-                    if int(database.child('Inventory').child(i.key()).child('Quantity').get().val()) == 0: 
-                        product_serial = i.key() 
-                        product_location = database.child('Inventory').child(i.key()).child('Physical_Location').get().val()
-                        product_name = database.child('Inventory').child(i.key()).child('product_name').get().val()
-                        product_amount = database.child('Inventory').child(i.key()).child('Quantity').get().val() 
+            for i in inventory: 
+                if inventory[i]["Quantity"] is not None:
+                    if inventory[i]["Quantity"] == 0: 
+                        product_serial = i 
+                        product_location = inventory[i]["Physical_Location"]
+                        product_name = inventory[i]["product_name"]
+                        product_amount = inventory[i]["Quantity"]
 
                         items.append((product_name,product_amount,product_serial,product_location,role))
                         
             return render(request, "inventory_stock_Manager.html", {'items':items})  
     #========ShowAll Case 
         else: 
-            for i in inventory.each():
-                product_serial = i.key() 
-                product_location = database.child('Inventory').child(i.key()).child('Physical_Location').get().val()
-                product_name = database.child('Inventory').child(i.key()).child('product_name').get().val()
-                product_amount = database.child('Inventory').child(i.key()).child('Quantity').get().val()
+            for i in inventory:
+                product_serial = i 
+                product_location = inventory[i]["Physical_Location"]
+                product_name = inventory[i]["product_name"]
+                product_amount = inventory[i]["Quantity"]
                 items.append((product_name,product_amount,product_serial,product_location,role)) 
                 
             return render(request, "inventory_stock_Manager.html", {'items':items, 'error': bad_serial_token})
