@@ -517,6 +517,7 @@ def student_courses(request):
 
 
 def pickup(request):
+    days_limit = 4
     items = list()
     email = request.session['email']
     name = email[:email.index("@")]
@@ -530,10 +531,10 @@ def pickup(request):
             year = today.year
             create_schedule_db(year)
             counter = 0
-            while counter < 10:
+            while counter < days_limit:
                 days = database.child('Schedule').child(year).child(month).get()
                 for d in days.each():
-                    if counter == 10:
+                    if counter == days_limit:
                         break
                     if d is not None:
                         hours_list = list()
@@ -544,7 +545,7 @@ def pickup(request):
                 
                         items.append((f'{d}/{month}', len(hours_list)))
                     counter = counter + 1
-                if counter < 10:
+                if counter < days_limit:
                     month = month + 1
                     if month == 13:
                         year = year + 1
