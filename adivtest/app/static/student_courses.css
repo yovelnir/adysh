@@ -2,9 +2,10 @@
 body{ 
     background-color: rgb(236, 234, 234);
 }
-.imgcontainer {
+.img_container {
+    width:25%;
     text-align: center;
-    margin: 24px 0 32px 0;
+    margin: auto;
     display: flex;
     justify-content: center;
   }

@@ -6,6 +6,8 @@ name = "pypi"
 [packages]
 django = "*"
 pyrebase4 = "*"
+firebase-admin = "*"
+reportlab = "*"
 
 [dev-packages]
 

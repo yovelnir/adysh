@@ -5,23 +5,49 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="shortcut icon" type="image/png" href="{% static 'fav/favicon.ico' %}"/>
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css'' %}" />
+    <script src="{% static 'js/bootstrap.min.js' %}"></script>  
     <link rel="stylesheet" href="{% static 'styles.css' %}" />
     
     <title>Main Page</title>
   </head>
-  <body>  
-    <a href="{% url 'logout' %}"
-      ><button type="submit" id="logoutbtn">
-        <p>Logout</p>
-      </button>
-    </a>    
 
-    <br>
-    <div id="user_details">Connect as: {{full_name}}</div>
+  <style> 
+
+    #tab_text{ 
+      font-weight: 700;
+      font-size: 24px; 
+    } 
+    #logoutbtn{ 
+      padding-top: 12px;
+      bottom: 45px;
+      right: 40px;
+      position: absolute;
+      font-size: 14px;
+    } 
     
-    <div class="imgcontainer">
-      <img src="{% static 'SCE_logo.png' %}" alt="Avatar" class="avatar" />
-    </div>
+    </style>
+  
+  <body>  
+    <div class="nav-header">
+      <header class="navbar">
+        <a href="{% url 'logout' %}">
+          <span>
+          <button type="submit" id="logoutbtn">
+            <p>Logout</p>
+          </button> 
+        </span>
+        </a>
+        
+        <span id="user_details">Connected as: <br> {{full_name}} <br> Student</span>
+
+      <span class="imgcontainer">
+        <img src="{% static 'SCE_logo.png' %}" alt="Avatar" class="avatar" />
+      </span>
+    </header>
+  </div>
+
     <div class="container">
       <a href = "{% url 'student_courses' %}">
       <div class="tab"><h2 id="tab_text">My Courses</h2></div></a>
