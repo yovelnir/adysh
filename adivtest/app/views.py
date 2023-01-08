@@ -521,19 +521,14 @@ def pickup(request):
     email = request.session['email']
     name = email[:email.index("@")]
     id = str(database.child('users').child(request.session['role']).child(name).child('id').get().val())
-    #all_orders = database.child('orders').get()
-    #orders_id = list()
 
-    #for order in all_orders.each():
-    #    orders_id.append(order.key())
-    
     if id in database.child('orders').get().val():
         if database.child('orders').child(id).child('status').get().val() == 'approved':
             today = datetime.date.today()
             day = today.day
             month = today.month
             year = today.year
-            create_schedule_db(month, year)
+            create_schedule_db(year)
             counter = 0
             while counter < 10:
                 days = database.child('Schedule').child(year).child(month).get()
@@ -553,14 +548,14 @@ def pickup(request):
                     month = month + 1
                     if month == 13:
                         year = year + 1
-                        create_schedule_db(month, year)
+                        create_schedule_db(year)
     else:
         items.append(('no order is approved',id))
     return render(request, "pickup.html", {'items':items})             
 
             
 
-def create_schedule_db(month1, year1):
+def create_schedule_db(year1):
     times = {}
     for hour in range(10, 18):
         minuts = 0
