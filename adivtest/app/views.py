@@ -535,32 +535,29 @@ def ordering_existing_items_table(request):
     return render(request, "ordering_existing_items_ASM.html", {'items':items}) 
 
 def  ordering_existing_items_request(request):
-    orders_ID=database.child('orders').get().val()
+    orders_ID=database.child('orders').get()
     user_mail=request.session['email']
     short_mail = user_mail[:user_mail.index('@')]
-    user_id=database.child('users').child('staff').child(short_mail).child('id').get().val() 
-    for i in orders_ID:
-        if(user_id is not database.child('orders').get().key()):
-            new_order_branch={'date':0,'order details':{},'role':3,'status':'pending'}
-            database.child('orders').set(user_id)
-            database.child('orders').child(user_id).set(new_order_branch)
-            items=request.POST.getlist("reqBox")
-            inventory=database.child('Inventory').get()
-            Amount = request.POST.getlist("Amount")
-            i = 0
-            while "" in Amount or "0" in Amount:
-                if Amount[i] == "" or Amount[i] == "0":
-                    Amount.pop(i)
-                else:
-                    i+=1
-            data_dict={}
-            for n in range(len(items)):
-                data_dict[items[n]] = int(Amount[n])
-            
-            
-            database.child('orders').child(user_id).child('order details').set(data_dict)
-    else:
-        messages.success(request, 'This user is already ordered! ')
+    user_id=str(database.child('users').child('staff').child(short_mail).child('id').get().val()) 
+    for i in orders_ID.each():
+        if(user_id == database.child('orders').child(i.key()).get().key()):
+            return redirect ('/home')
+    new_order_branch={'date':0,'order details':{},'role':3,'status':'pending'}
+    database.child('orders').child(user_id).update(new_order_branch)
+    items=request.POST.getlist("reqBox")
+    inventory=database.child('Inventory').get()
+    Amount = request.POST.getlist("Amount")
+    i = 0
+    while "" in Amount or "0" in Amount:
+        if Amount[i] == "" or Amount[i] == "0":
+            Amount.pop(i)
+        else:
+            i+=1
+    data_dict={}
+    for n in range(len(items)):
+        data_dict[items[n]] = int(Amount[n])       
+    database.child('orders').child(user_id).child('order details').set(data_dict)
+    messages.success(request, 'This user is already ordered! ')
         # here supposed to be a messege telling the user that he already have an order.
         #return redirect('/home')        
     return redirect('/home')
