@@ -471,7 +471,6 @@ def remove_from_course(request):
     full_name = database.child('users').child('students').child(student).get().val()['full_name']
 
     request.session['msg'] = full_name + " was removed from courses " + str(courses)
-
     return redirect('/home')
 
 def student_courses(request):
@@ -523,25 +522,33 @@ def student_courses(request):
 
 
 def ordering_existing_items_table(request):
-    
-    items = list()  
-    inventory = database.child('Inventory').get()
-    for i in inventory.each():
-        product_name = database.child('Inventory').child(i.key()).child('product_name').get().val()
-        product_amount = database.child('Inventory').child(i.key()).child('Quantity').get().val()
-        items.append((product_name,product_amount)) 
-
-                  
-    return render(request, "ordering_existing_items_ASM.html", {'items':items}) 
-
-def  ordering_existing_items_request(request):
+   #-----------This part of the function is for checking if there is an existing order on the session user, if it does exist the user will be redirect to home/
     orders_ID=database.child('orders').get()
     user_mail=request.session['email']
     short_mail = user_mail[:user_mail.index('@')]
     user_id=str(database.child('users').child('staff').child(short_mail).child('id').get().val()) 
     for i in orders_ID.each():
         if(user_id == database.child('orders').child(i.key()).get().key()):
+            request.session['msg'] = "you already orderd! please wait until your order approved"
             return redirect ('/home')
+    #-----------end of checking ---------------------------------------------------
+    items = list()  
+    inventory = database.child('Inventory').get()
+    for i in inventory.each():
+        if(database.child('Inventory').child(i.key()).child('Quantity').get().val()==0 or database.child('Inventory').child(i.key()).child('Quantity').get().val()==""):
+            product_name = database.child('Inventory').child(i.key()).child('product_name').get().val()
+            product_amount = database.child('Inventory').child(i.key()).child('Quantity').get().val()
+            items.append((product_name,product_amount)) 
+
+                  
+    return render(request, "ordering_existing_items_ASM.html", {'items':items}) 
+
+def  ordering_existing_items_request(request): #------This function running only if the user dont have any previous orders waiting
+    orders_ID=database.child('orders').get()
+    user_mail=request.session['email']
+    short_mail = user_mail[:user_mail.index('@')]
+    user_id=str(database.child('users').child('staff').child(short_mail).child('id').get().val()) 
+    
     new_order_branch={'date':0,'order details':{},'role':3,'status':'pending'}
     database.child('orders').child(user_id).update(new_order_branch)
     items=request.POST.getlist("reqBox")
@@ -556,9 +563,36 @@ def  ordering_existing_items_request(request):
     data_dict={}
     for n in range(len(items)):
         data_dict[items[n]] = int(Amount[n])       
-    database.child('orders').child(user_id).child('order details').set(data_dict)
-    messages.success(request, 'This user is already ordered! ')
-        # here supposed to be a messege telling the user that he already have an order.
-        #return redirect('/home')        
+    database.child('orders').child(user_id).child('order details').set(data_dict)    
     return redirect('/home')
 
+def order_status(request):
+    user_mail=request.session['email']
+    short_mail = user_mail[:user_mail.index('@')]
+    user_id=str(database.child('users').child('staff').child(short_mail).child('id').get().val()) 
+    StatusDB=str(database.child('orders').child(user_id).child('status').get().val())
+    if(StatusDB=="pending"):
+        msg =  "Your order is awaiting confirmation"
+        
+    else:
+        
+        msg = "You haven't ordered anything yet"
+    return render(request,'submit_an_order_ASM.html',{"msg1":msg})
+
+def ordering_new_items(request):
+    new_orders_ID=database.child('order_new_items').get()
+    user_mail=request.session['email']
+    short_mail = user_mail[:user_mail.index('@')]
+    user_id=str(database.child('users').child('staff').child(short_mail).child('id').get().val())
+    for i in new_orders_ID.each():
+        if(user_id == database.child('order_new_items').child(i.key()).get().key()):
+            print("!!!!!! IN If!!!!!")
+            request.session['msg'] = "you already orderd new items! please wait until your order approved"
+            return redirect ('/submit_an_order')
+    
+    print("@@@ Out if@@@")
+    new_item=request.POST.getlist("new_item")
+    items_list={'items':new_item}
+    print(items_list)
+    database.child('order_new_items').child(user_id).set(items_list)
+    return render(request,'ordering_new_items.html')

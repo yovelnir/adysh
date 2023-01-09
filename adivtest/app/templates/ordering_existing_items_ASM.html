@@ -8,14 +8,8 @@
         <link rel="stylesheet" href="{% static 'styles.css' %}">
         <link rel="stylesheet" href="{% static 'ordering_existing_items_ASM.css' %}">
         <title>Order Exist item</title>
-    </head>
-
-    <body>
     
-  
-        <div class="main_container">
-          
-          <!-- back button -->
+      <!-- back button -->
           <a href="{% url 'home' %}">
             <button type="submit" id="btn_back">
               <img src="{% static 'back_arrow.png' %}" id="btn_back_img" alt="back arrow">
@@ -26,7 +20,15 @@
           <div class="imgcontainer">
             <img src="{% static 'SCE_logo.png' %}" alt="Avatar" class="avatar"/>
           </div>
+      </head>
+      
           
+    <body>
+    
+  
+        <div class="main_container">
+          
+  
       
           <table>
             <thead>
@@ -47,21 +49,20 @@
                        <td><label for="Name"></label>
                     <input class="reqBox" type="checkbox" id="reqBox[]" value="{{product_name}}" name="reqBox" />{{product_name}}
                         
-                    <input class="Amount" id="Amount[]" name="Amount" type="number" min="" max={{product_amount}} />
+                    <input class="Amount" id="Amount[]" name="Amount" type="number" min="" max=50 />
                      <td>{{product_amount}}</td> 
                 </tr>
                 <!-- {% endif %} -->
                 {% endfor %}
             </tbody>
           </table> 
-          <button class="btn_filter" type="submit" name="Send Request" value="0">Send Request</button>
-        
+          <button class="btn_filter" type="submit" name="Send Request" value="submit the order" onclick="return confirm('Your order submit successfully!')"></input>
+          </div>>Send Request</button>
+         
           <div id="banner"><h3>ADYSH</h3></div>
       </div>
     </form>
 
-     <!-- Need to implement: *succes messege
-                             *you can fill amount only if you checked in checkbox  -->
 </body>
 </html>
      

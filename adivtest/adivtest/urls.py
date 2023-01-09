@@ -37,5 +37,7 @@ urlpatterns = [
     path('student_courses/', views.student_courses, name='student_courses'),
     path('ordering_existing_items_ASM/',views.ordering_existing_items_table,name='ordering_existing_items'),
     path('ordering_existing_items_request/',views.ordering_existing_items_request,name='ordering_existing_items_request'),
-    
+    path('ordering_existing_items_ASM/',views.order_status,name='ordering_existing_items'),
+    path('order_status/',views.order_status,name='submit_an_order_ASM'),
+    path('ordering_new_items/',views.ordering_new_items,name='ordering_new_items')
 ]

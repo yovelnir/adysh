@@ -1,14 +1,20 @@
+.imgcontainer {       
+    text-align: center;
+    margin-top: 16px;
+    display:block;
+    justify-content: center;
+}    
+#btn_back{ 
+    margin-left: 8px;
+    display: inline; 
+    background-color: rgb(236, 234, 234);
+    cursor: pointer;
+    flex-shrink: 10px;
+}   
 body{ 
     background-color: rgb(236, 234, 234);
 }
-.imagcontainer {
-    text-align: center;
-    margin: 0 0 32px 0;
-    position: relative;
-    display: flex;
-    justify-content: center; 
-   
-  }
+
 
 table th, td {
     border: 1px solid; 

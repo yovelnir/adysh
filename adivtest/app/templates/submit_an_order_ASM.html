@@ -9,9 +9,12 @@
     <link rel="stylesheet" href="{% static 'submit_an_order_ASM.css' %}">
     <title>Submit Order Page</title>
 </head>
-
+<!-- SCE Logo -->
+            <div class="imgcontainer">
+              <img src="{% static 'SCE_logo.png' %}" alt="Avatar" class="avatar"/>
+            </div>
     <body>
- 
+  
         <div class="main_container">
       
             <!-- back button -->
@@ -21,10 +24,7 @@
                 <p id="back_text">Back</p>
               </button>
             </a> 
-            <!-- SCE Logo -->
-            <div class="imgcontainer">
-              <img src="{% static 'SCE_logo.png' %}" alt="Avatar" class="avatar"/>
-            </div>
+           
         
         <div class="main_container">
 
@@ -33,11 +33,19 @@
                         {% csrf_token %}
                         <a href = "{% url 'ordering_existing_items' %}">
                         <div class="tab"><h2 id="tab_text">Ordering existing items</h2></div></a>
-                        <div class="tab"><h2 id="tab_text">Order new items</h2></div>
-                        <div class="tab"><h2 id="tab_text">Order status</h2></div>
+                        <a href="{% url 'ordering_new_items' %}">
+                        <div class="tab"><h2 id="tab_text">Order new items</h2></div></a>
+                        <a href= "{% url 'submit_an_order_ASM' %}">
+                        <div class="tab"><h2 id="tab_text">Order status</h2></div></a>
                     </form>   
                 </div>
             </div>
+            {% if msg1 %}
+            <div class="alert">
+              <h3>{{msg1}}</h3>
+              <span class="alertCloseBtn" onclick="this.parentElement.style.display='none';">ok</span> 
+            </div>
+              {% endif %}
             <div id="banner"><h3>ADYSH</h3></div>
     </body>
 
