@@ -68,3 +68,13 @@
     font-size: 20px;
     cursor: pointer;
     }
+    #comment{
+        height: 50mm;
+        width: 250mm;
+        color: black;
+        writing-mode: horizontal-tb;
+        font-size: 2rem;
+        line-height: 1.5em;
+        font-family: 'Roboto';
+        border-color: #4CAF50;
+    }

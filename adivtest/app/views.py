@@ -450,6 +450,7 @@ def NewItemInventory(request):
 #----------------------------------------------US3 ASM order submition--------------------
 
 def submit_an_order_ASM(request):
+        
         return render(request,"submit_an_order_ASM.html")
 
 
@@ -537,9 +538,8 @@ def ordering_existing_items_table(request):
     for i in inventory.each():
         if(database.child('Inventory').child(i.key()).child('Quantity').get().val()==0 or database.child('Inventory').child(i.key()).child('Quantity').get().val()==""):
             product_name = database.child('Inventory').child(i.key()).child('product_name').get().val()
-            product_amount = database.child('Inventory').child(i.key()).child('Quantity').get().val()
-            items.append((product_name,product_amount)) 
-
+            #product_amount = database.child('Inventory').child(i.key()).child('Quantity').get().val()
+            items.append((product_name)) 
                   
     return render(request, "ordering_existing_items_ASM.html", {'items':items}) 
 
@@ -570,29 +570,28 @@ def order_status(request):
     user_mail=request.session['email']
     short_mail = user_mail[:user_mail.index('@')]
     user_id=str(database.child('users').child('staff').child(short_mail).child('id').get().val()) 
-    StatusDB=str(database.child('orders').child(user_id).child('status').get().val())
-    if(StatusDB=="pending"):
-        msg =  "Your order is awaiting confirmation"
-        
+    Status_existing=str(database.child('orders').child(user_id).child('status').get().val())
+    Status_new=str(database.child('order_new_items').child(user_id).child('status').get().val())
+    if(Status_existing=="pending" or Status_new=="pending"):
+        return render(request,'submit_an_order_ASM.html',{"msg2":"Your order is awaiting confirmation"})
+    elif(Status_existing=="approved" or Status_new=="approved"):
+        return render(request,'submit_an_order_ASM.html',{"msg2":"Your order Approved"}) 
     else:
-        
-        msg = "You haven't ordered anything yet"
-    return render(request,'submit_an_order_ASM.html',{"msg1":msg})
+        return render(request,'submit_an_order_ASM.html',{"msg2":"You haven't ordered anything yet"})
+    
 
 def ordering_new_items(request):
+    
     new_orders_ID=database.child('order_new_items').get()
     user_mail=request.session['email']
     short_mail = user_mail[:user_mail.index('@')]
     user_id=str(database.child('users').child('staff').child(short_mail).child('id').get().val())
     for i in new_orders_ID.each():
         if(user_id == database.child('order_new_items').child(i.key()).get().key()):
-            print("!!!!!! IN If!!!!!")
-            request.session['msg'] = "you already orderd new items! please wait until your order approved"
-            return redirect ('/submit_an_order')
+            return render(request,'submit_an_order_ASM.html',{"msg2":"you already orderd! please wait until your order approved"})
     
-    print("@@@ Out if@@@")
-    new_item=request.POST.getlist("new_item")
-    items_list={'items':new_item}
-    print(items_list)
-    database.child('order_new_items').child(user_id).set(items_list)
+    if request.POST.get("comment"):
+        status={'status':'pending','items':request.POST.get("comment")}
+        database.child('order_new_items').child(user_id).set(status)
+        return redirect('/home')
     return render(request,'ordering_new_items.html')

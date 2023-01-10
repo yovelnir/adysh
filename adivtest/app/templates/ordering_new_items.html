@@ -26,11 +26,11 @@
           
       <div class="main_container">
         <h1>Please enter the items you want to order, and the amount of each one:</h1>
-        <form action="{% url 'ordering_new_items' %}" method="POST">
+        <form id="text_form" class ="text_form" name="text_form" action="{% url 'ordering_new_items' %}" method="POST" onsubmit="submitBtn.disabled=true; submitBtn.value='Sending Request...'">
           {% csrf_token %}
-        <textarea rows="6" cols="60" name="comment" form="usrform"></textarea> <!-- Name: <input type="text" name="usrname"> -->
+        <input type="text" required rows="6" cols="60" name="comment" id="comment" ></input> <!-- Name: <input type="text" name="usrname"> -->
          <br>
-        <input type="submit" value="Send Request" onclick="return confirm('submited successfully')">
+        <input type="submit" value="Send Request" onclick="return confirm('submited successfully')"></input>
         </form>
       </div>    
           
