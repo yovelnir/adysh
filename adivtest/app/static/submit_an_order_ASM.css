@@ -1,23 +1,24 @@
-
+.imgcontainer {       
+    text-align: center;
+    margin-top: 5px;
+    display:block;
+    justify-content: center;
+}    
 body{
     background-color: rgb(236, 234, 234);
 }
-.imgcontainer {       
-    text-align: center;
-    margin-top: 48px;
-    display:block;
-    justify-content: center;
-    
-}
+
+
 form{
 
-  margin-top: 16px;
   
   display: flex;
   justify-content: center;
   text-align: center;
+  position: relative;
   margin-left: auto;
   margin-right: auto;
+  margin-top: 120px;
 }
 #button_container{
     margin-top: 64px;
@@ -43,12 +44,12 @@ form{
     display: inline-block;
     font-size: 24px;
     cursor: pointer;
-    margin-top: 150px;
+    margin-top: 200px;
   }
   
   #banner {
     text-align: center;
-    margin-top: 100px;
+    margin-top: 60px;
   } 
 
   #btn_back{ 
@@ -69,3 +70,30 @@ form{
     display: inline;
     margin-top: -5px;
 } 
+
+.alert{
+  top: 60px;
+    margin: auto;
+    padding: 20px;
+    width: 50%;
+    background-color: #04AA6D;
+    color: white;
+    text-align: center;
+}
+
+.alertCloseBtn{
+  position: relative;
+  bottom: 12px;
+  border:1px solid white ;
+  padding: 2px 5px 2px 5px;
+}
+.imgcontainer {
+  margin-top:5px;
+  position: absolute;
+  left: 0;
+  max-width: calc(425px/var(--size-divisor));
+  display: flex;
+  width: 30%;
+  right: 0;
+  justify-content: center;
+}

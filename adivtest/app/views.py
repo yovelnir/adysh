@@ -13,7 +13,7 @@ from reportlab.lib.pagesizes import A4
 import os
 import firebase_admin
 from firebase_admin import credentials, storage
-from datetime import timedelta
+from datetime import timedelta, date
 
 
 config = {
@@ -222,11 +222,8 @@ def remove_user(request):
 
     
 
-def inventory_stock(request):
-    items = list()  
-    role = request.session['role'] #role to know which table to render
-    inventory = database.child('Inventory').get()
-    filter = '0'
+def inventory_stock(request): 
+
     bad_serial_token = "" 
     request.session['bad_serial'] = 0
 
@@ -243,7 +240,16 @@ def inventory_stock(request):
         removeInventory(request) 
     elif 'btn_save_new' in request.POST: 
         NewItemInventory(request)
+
+    items = list()  
+    role = request.session['role'] #role to know which table to render
+    inventory = database.child('Inventory').get().val()
+    filter = '0'
     
+    if 'InStock' in request.POST: 
+        filter = request.POST['InStock'] 
+    elif 'OutOfStock' in request.POST:
+        filter = request.POST['OutOfStock']
 
     if request.session['bad_serial'] == -1:
         request.session['bad_serial'] = 0
@@ -256,29 +262,29 @@ def inventory_stock(request):
     if role == 'staff':
     #========InStock   
         if filter == '1': 
-            for i in inventory.each(): 
-                if database.child('Inventory').child(i.key()).child('Quantity').get().val() is not None:
-                    if database.child('Inventory').child(i.key()).child('Quantity').get().val() > 0: 
-                        product_name = database.child('Inventory').child(i.key()).child('product_name').get().val()
-                        product_amount = database.child('Inventory').child(i.key()).child('Quantity').get().val()
+            for i in inventory: 
+                if inventory[i]["Quantity"] is not None:
+                    if inventory[i]["Quantity"] > 0: 
+                        product_name = inventory[i]["product_name"]
+                        product_amount = inventory[i]["Quantity"]
                         items.append((product_name,product_amount,role)) 
 
             return render(request, "inventory_stock_ASM.html", {'items':items})  
     #========OutOfStock
         if filter == '2': 
-            for i in inventory.each(): 
-                if database.child('Inventory').child(i.key()).child('Quantity').get().val() is not None:
-                    if database.child('Inventory').child(i.key()).child('Quantity').get().val() == 0: 
-                        product_name = database.child('Inventory').child(i.key()).child('product_name').get().val()
-                        product_amount = database.child('Inventory').child(i.key()).child('Quantity').get().val()
+            for i in inventory: 
+                if inventory[i]["Quantity"] is not None:
+                    if inventory[i]["Quantity"] == 0: 
+                        product_name = inventory[i]["product_name"]
+                        product_amount = inventory[i]["Quantity"]
                         items.append((product_name,product_amount,role)) 
 
             return render(request, "inventory_stock_ASM.html", {'items':items})  
     #========ShowAll Case
         else: 
-            for i in inventory.each():
-                product_name = database.child('Inventory').child(i.key()).child('product_name').get().val()
-                product_amount = database.child('Inventory').child(i.key()).child('Quantity').get().val()
+            for i in inventory:
+                product_name = inventory[i]["product_name"]
+                product_amount = inventory[i]["Quantity"]
                 items.append((product_name,product_amount,role)) 
                 
             return render(request, "inventory_stock_ASM.html", {'items':items}) 
@@ -289,36 +295,36 @@ def inventory_stock(request):
     else:   
         #========InStock   
         if filter == '1': 
-            for i in inventory.each(): 
-                if database.child('Inventory').child(i.key()).child('Quantity').get().val() is not None:
-                    if int(database.child('Inventory').child(i.key()).child('Quantity').get().val()) > 0:
-                        product_serial = i.key() 
-                        product_location = database.child('Inventory').child(i.key()).child('Physical_Location').get().val()
-                        product_name = database.child('Inventory').child(i.key()).child('product_name').get().val()
-                        product_amount = database.child('Inventory').child(i.key()).child('Quantity').get().val()
+            for i in inventory: 
+                if inventory[i]["Quantity"] is not None:
+                    if inventory[i]["Quantity"] > 0:
+                        product_serial = i 
+                        product_location = inventory[i]["Physical_Location"]
+                        product_name = inventory[i]["product_name"]
+                        product_amount = inventory[i]["Quantity"]
                         items.append((product_name,product_amount,product_serial,product_location,role)) 
 
             return render(request, "inventory_stock_Manager.html", {'items':items})  
     #========OutOfStock
         if filter == '2':
-            for i in inventory.each(): 
-                if database.child('Inventory').child(i.key()).child('Quantity').get().val() is not None:
-                    if int(database.child('Inventory').child(i.key()).child('Quantity').get().val()) == 0: 
-                        product_serial = i.key() 
-                        product_location = database.child('Inventory').child(i.key()).child('Physical_Location').get().val()
-                        product_name = database.child('Inventory').child(i.key()).child('product_name').get().val()
-                        product_amount = database.child('Inventory').child(i.key()).child('Quantity').get().val() 
+            for i in inventory: 
+                if inventory[i]["Quantity"] is not None:
+                    if inventory[i]["Quantity"] == 0: 
+                        product_serial = i 
+                        product_location = inventory[i]["Physical_Location"]
+                        product_name = inventory[i]["product_name"]
+                        product_amount = inventory[i]["Quantity"]
 
                         items.append((product_name,product_amount,product_serial,product_location,role))
                         
             return render(request, "inventory_stock_Manager.html", {'items':items})  
     #========ShowAll Case 
         else: 
-            for i in inventory.each():
-                product_serial = i.key() 
-                product_location = database.child('Inventory').child(i.key()).child('Physical_Location').get().val()
-                product_name = database.child('Inventory').child(i.key()).child('product_name').get().val()
-                product_amount = database.child('Inventory').child(i.key()).child('Quantity').get().val()
+            for i in inventory:
+                product_serial = i 
+                product_location = inventory[i]["Physical_Location"]
+                product_name = inventory[i]["product_name"]
+                product_amount = inventory[i]["Quantity"]
                 items.append((product_name,product_amount,product_serial,product_location,role)) 
                 
             return render(request, "inventory_stock_Manager.html", {'items':items, 'error': bad_serial_token})
@@ -451,6 +457,7 @@ def NewItemInventory(request):
 #----------------------------------------------US3 ASM order submition--------------------
 
 def submit_an_order_ASM(request):
+        
         return render(request,"submit_an_order_ASM.html")
 
 
@@ -472,7 +479,6 @@ def remove_from_course(request):
     full_name = database.child('users').child('students').child(student).get().val()['full_name']
 
     request.session['msg'] = full_name + " was removed from courses " + str(courses)
-
     return redirect('/home')
 
 def student_courses(request):
@@ -524,25 +530,32 @@ def student_courses(request):
 
 
 def ordering_existing_items_table(request):
-    
-    items = list()  
-    inventory = database.child('Inventory').get()
-    for i in inventory.each():
-        product_name = database.child('Inventory').child(i.key()).child('product_name').get().val()
-        product_amount = database.child('Inventory').child(i.key()).child('Quantity').get().val()
-        items.append((product_name,product_amount)) 
-
-                  
-    return render(request, "ordering_existing_items_ASM.html", {'items':items}) 
-
-def  ordering_existing_items_request(request):
+   #-----------This part of the function is for checking if there is an existing order on the session user, if it does exist the user will be redirect to home/
     orders_ID=database.child('orders').get()
     user_mail=request.session['email']
     short_mail = user_mail[:user_mail.index('@')]
     user_id=str(database.child('users').child('staff').child(short_mail).child('id').get().val()) 
     for i in orders_ID.each():
         if(user_id == database.child('orders').child(i.key()).get().key()):
+            request.session['msg'] = "you already orderd! please wait until your order approved"
             return redirect ('/home')
+    #-----------end of checking ---------------------------------------------------
+    items = list()  
+    inventory = database.child('Inventory').get()
+    for i in inventory.each():
+        if(database.child('Inventory').child(i.key()).child('Quantity').get().val()==0 or database.child('Inventory').child(i.key()).child('Quantity').get().val()==""):
+            product_name = database.child('Inventory').child(i.key()).child('product_name').get().val()
+            #product_amount = database.child('Inventory').child(i.key()).child('Quantity').get().val()
+            items.append((product_name)) 
+                  
+    return render(request, "ordering_existing_items_ASM.html", {'items':items}) 
+
+def  ordering_existing_items_request(request): #------This function running only if the user dont have any previous orders waiting
+    orders_ID=database.child('orders').get()
+    user_mail=request.session['email']
+    short_mail = user_mail[:user_mail.index('@')]
+    user_id=str(database.child('users').child('staff').child(short_mail).child('id').get().val()) 
+    
     new_order_branch={'date':0,'order details':{},'role':3,'status':'pending'}
     database.child('orders').child(user_id).update(new_order_branch)
     items=request.POST.getlist("reqBox")
@@ -557,9 +570,130 @@ def  ordering_existing_items_request(request):
     data_dict={}
     for n in range(len(items)):
         data_dict[items[n]] = int(Amount[n])       
-    database.child('orders').child(user_id).child('order details').set(data_dict)
-    messages.success(request, 'This user is already ordered! ')
-        # here supposed to be a messege telling the user that he already have an order.
-        #return redirect('/home')        
+    database.child('orders').child(user_id).child('order details').set(data_dict)    
     return redirect('/home')
 
+def order_status(request):
+    user_mail=request.session['email']
+    short_mail = user_mail[:user_mail.index('@')]
+    user_id=str(database.child('users').child('staff').child(short_mail).child('id').get().val()) 
+    Status_existing=str(database.child('orders').child(user_id).child('status').get().val())
+    Status_new=str(database.child('order_new_items').child(user_id).child('status').get().val())
+    if(Status_existing=="pending" or Status_new=="pending"):
+        return render(request,'submit_an_order_ASM.html',{"msg2":"Your order is awaiting confirmation"})
+    elif(Status_existing=="approved" or Status_new=="approved"):
+        return render(request,'submit_an_order_ASM.html',{"msg2":"Your order Approved"}) 
+    else:
+        return render(request,'submit_an_order_ASM.html',{"msg2":"You haven't ordered anything yet"})
+    
+
+def ordering_new_items(request):
+    
+    new_orders_ID=database.child('order_new_items').get()
+    user_mail=request.session['email']
+    short_mail = user_mail[:user_mail.index('@')]
+    user_id=str(database.child('users').child('staff').child(short_mail).child('id').get().val())
+    for i in new_orders_ID.each():
+        if(user_id == database.child('order_new_items').child(i.key()).get().key()):
+            return render(request,'submit_an_order_ASM.html',{"msg2":"you already orderd! please wait until your order approved"})
+    
+    if request.POST.get("comment"):
+        status={'status':'pending','items':request.POST.get("comment")}
+        database.child('order_new_items').child(user_id).set(status)
+        return redirect('/home')
+    return render(request,'ordering_new_items.html')
+
+def student_ordering(request):
+    email = request.session['email']
+    short_mail = email[:email.index('@')]
+    user_data = database.child('users').child('students').child(short_mail).get().val()
+    uid = user_data['id']
+    inventory = database.child('Inventory').get().val()
+
+
+    if request.POST.get('courseFilter'):
+        course = request.POST.get('courseFilter')
+    elif request.POST.get('course'):
+        course = request.POST.get('course')
+    elif 'courses' in user_data:
+        course = user_data['courses'][0]
+    else:
+        course = None
+    user_data['course'] = course
+
+    if request.POST.get('order'):
+        order_details = dict(zip(request.POST.getlist('items'), request.POST.getlist('amount')))
+        order_details = {k: int(v) for k,v in order_details.items()}
+        order = {'date': str(date.today()), 'order details': order_details, 'role': 1, 'status': 'approved'}
+        orders = database.child('orders').get().val()
+        if str(uid) in orders:
+            for item in order_details:
+                if item in orders[str(uid)]['order details']:
+                    current = orders[str(uid)]['order details'][item]
+                    up = {item: int(order_details[item]) + int(current)}
+                    database.child('orders').child(uid).child('order details').update(up)
+                else:
+                    database.child('orders').child(uid).child('order details').update({item: order_details[item]})
+        else:
+            database.child('orders').child(uid).set(order)
+
+        database.child('users').child('students').child(short_mail).child('requirements').child(course).update(order_details)
+
+        for k, i in inventory.items():
+            if i['product_name'] in order_details:
+                if i['Consumable'] == '0':
+                    student = database.child('users').child('students').child(short_mail)
+                    student.child('loaning').child(i['product_name']).update({'Quantity': order_details[i['product_name']],
+                                                                              'Date': str(date.today()),
+                                                                              'Return': str(date(2023,1,19))})
+                database.child('Inventory').child(k).update({'Quantity': i['Quantity'] - order_details[i['product_name']]})
+
+        if request.POST.get('notify'):
+            notify = request.POST.getlist('notify')
+            notify = {x : inventory[x]['product_name'] for x in notify}
+            database.child('users').child('students').child(short_mail).child('notify').update(notify)
+
+
+
+        user_data = database.child('users').child('students').child(short_mail).get().val()
+        user_data['course'] = course
+    
+    if course:
+        requirements = database.child('Courses').child(course).child('requirements').get().val()
+        user_data['req'] = {}
+
+        if 'loaning' in user_data:
+            print('hello')
+            for item in dict(requirements):
+                if item in user_data['loaning'] and course not in user_data['requirements']:
+                    add = {item: 1}
+                    database.child('users').child('students').child(short_mail).child('requirements').child(course).update(add)
+                    requirements.pop(item)
+                elif item in user_data['loaning'] and item not in user_data['requirements'][course]:
+                    add = {item: 1}
+                    database.child('users').child('students').child(short_mail).child('requirements').child(course).update(add)
+                    requirements.pop(item)
+
+        if 'requirements' in user_data:
+            if course in user_data['requirements']:
+                if dict(requirements) == user_data['requirements'][course]:
+                    user_data['filled'] = True
+                    return render(request, "student_ordering.html", user_data)
+                else:
+                    for k in dict(requirements):
+                        if k in user_data['requirements'][course] and requirements[k] == user_data['requirements'][course][k]:
+                            requirements.pop(k)
+                        elif k in user_data['requirements'][course]:
+                            requirements[k] = int(requirements[k]) - int(user_data['requirements'][course][k])
+
+        for k in requirements:
+            for s, i in inventory.items():
+                if i['product_name'] == k:               
+                    user_data['req'][k] = {'quantity': requirements[k],
+                                        'available_quantity': i['Quantity'],
+                                        'loan': i['Consumable'],
+                                        'serial': s,}
+                    break
+
+
+    return render(request, "student_ordering.html", user_data)

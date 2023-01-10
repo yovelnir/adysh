@@ -1,14 +1,32 @@
+.imgcontainer {       
+    text-align: center;
+    margin-top: 5px;
+    display:block;
+ 
+}    
+
+#btn_back{ 
+    margin-left: 8px;
+    display: inline; 
+    border: none; 
+    background-color: rgb(236, 234, 234);
+    cursor: pointer;
+} 
+
+#btn_back_img{ 
+    width: 30px; 
+    display: inline-block;
+    vertical-align: middle; 
+    height: 30px;   
+}
+#back_text{   
+    display: inline;
+    margin-top: -5px;
+} 
 body{ 
     background-color: rgb(236, 234, 234);
 }
-.imagcontainer {
-    text-align: center;
-    margin: 0 0 32px 0;
-    position: relative;
-    display: flex;
-    justify-content: center; 
-   
-  }
+
 
 table th, td {
     border: 1px solid; 
@@ -19,15 +37,15 @@ tr, td{
     padding: 20px; 
 
 } 
-.main_container{ 
-    padding-top: 8px;
-    margin-top: 32px; 
+ .main_container{ 
+    position: relative;
+    margin-top: 100px; 
     margin-left: auto; 
     margin-right: auto; 
     background-color: whitesmoke; 
-    width: 70%; 
+    width: 90%; 
     height: 100%;
-}
+} 
 table{  
     margin-top: 0;
     margin-left: auto; 
@@ -37,7 +55,8 @@ table{
 
 
 .btn_filter{ 
-    display: inline; 
+    width: auto;
+    height: auto; 
     background-color: #04AA6D;
     color: white;
     padding: 10px 15px;
@@ -47,3 +66,8 @@ table{
     border-radius: 5px;
     cursor: pointer; 
 } 
+#banner {
+    text-align: center;
+    margin-top: 60px;
+    
+  } 

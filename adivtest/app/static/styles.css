@@ -31,7 +31,6 @@ body {
 /* Center the avatar image inside this container */
 .imgcontainer {
   margin: auto;
-  position: absolute;
   left: 0;
   max-width: calc(425px/var(--size-divisor));
   display: flex;
@@ -129,10 +128,11 @@ a{
 } 
 
 .alert {
+  font-size: 16px;
   top: 60px;
   margin: auto;
   padding: 20px;
-  width: 50%;
+  width: max-content;
   background-color: #04AA6D;
   color: white;
   text-align: center;
