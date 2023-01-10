@@ -88,6 +88,14 @@ def postLogin(request):
     elif request.session['role'] == 'staff':
         user_data['courses'] = database.child('Courses').get().val()
         user_data['students'] = database.child('users').child('students').get().val()
+        for k, v in user_data['students'].items():
+            if 'loaning' in v:
+                user_data['students'][k].pop('loaning')
+            if 'requirements' in v:
+                user_data['students'][k].pop('requirements')
+            if 'notify' in v:
+                user_data['students'][k].pop('notify')
+
         return render(request,"main_ASM.html",user_data)
 
 def login_page(request):
