@@ -229,10 +229,10 @@ def inventory_stock(request):
     filter = '0'
     bad_serial_token = "" 
     request.session['bad_serial'] = 0
-    request.session['bad_serial'] = 0
 
 
 
+# ======= Handling with the request type
     if 'InStock' in request.POST: 
         filter = request.POST['InStock'] 
     elif 'OutOfStock' in request.POST:
@@ -366,21 +366,22 @@ def editInventory(request):
 
 
     
-def removeInventory(request): 
+def removeInventory(request):  
+    
 
     inventory = database.child('Inventory').get() 
     serial_number = request.POST['serial_number'] 
     serial_flag = False 
     
-    # ======= check if serial number exist 
+    # ======= Check if serial number exist 
     for key in inventory.each(): 
         if int(serial_number) == int(key.key()): 
             serial_flag = True 
 
-        
+    # ======= Add a message to appear on the page   
     if serial_flag == False: 
         request.session['bad_serial'] = -1  
-
+    # ======= Removing the item from database 
     else:  
         database.child('Inventory').child(serial_number).remove() 
         return render(request,"inventory_stock_Manager.html")
@@ -422,24 +423,24 @@ def NewItemInventory(request):
         if int(serial_number) == int(key.key()):  
             serial_flag = True
         
-    
+    # ======= add certain msg to be shown on page
     if serial_flag == True: 
         request.session['bad_serial'] = -2
-
+    # ======= saving the new item attributes on local variable
     else:  
         new_product_name = request.POST['product_name']
         new_quantity = request.POST['quantity'] 
         new_product_location = request.POST['product_location']
         new_consumable = request.POST['consumable']
 
-
+    # ======= new item attributes as a dictionary
         data = { 
             'product_name': new_product_name,
             'Physical_Location': new_product_location, 
             'Quantity': int(new_quantity),
             'Consumable': new_consumable
         }
-
+    # ======= Adding to database
         database.child('Inventory').child(serial_number).update(data)
                  
     return render(request,"inventory_stock_Manager.html")
