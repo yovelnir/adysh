@@ -1,0 +1,41 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="{% static 'styles.css' %}">
+        <link rel="stylesheet" href="{% static 'ordering_new_items.css' %}">
+        <title>Order New item</title>
+    </head>
+
+    <body>
+    
+   <!-- back button -->
+      <a href="{% url 'home' %}">
+      <button type="submit" id="btn_back">
+      <img src="{% static 'back_arrow.png' %}" id="btn_back_img" alt="back arrow">
+      <p id="back_text">Back</p>
+      </button>
+      </a> 
+   <!-- SCE Logo -->
+      <div class="imgcontainer">
+      <img src="{% static 'SCE_logo.png' %}" alt="Avatar" class="avatar"/>
+      </div>
+          
+      <div class="main_container">
+        <h1>Please enter the items you want to order, and the amount of each one:</h1>
+        <form action="{% url 'ordering_new_items' %}" method="POST">
+          {% csrf_token %}
+        <textarea rows="6" cols="60" name="comment" form="usrform"></textarea> <!-- Name: <input type="text" name="usrname"> -->
+         <br>
+        <input type="submit" value="Send Request" onclick="return confirm('submited successfully')">
+        </form>
+      </div>    
+          
+          
+        
+          
+          </body>
+          </html>          

@@ -1,0 +1,52 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device_width,initial-scale=1.0">
+    <link rel="stylesheet" href="{% static 'styles.css' %}">
+    <link rel="stylesheet" href="{% static 'submit_an_order_ASM.css' %}">
+    <title>Submit Order Page</title>
+</head>
+<!-- SCE Logo -->
+            <div class="imgcontainer">
+              <img src="{% static 'SCE_logo.png' %}" alt="Avatar" class="avatar"/>
+            </div>
+    <body>
+  
+        <div class="main_container">
+      
+            <!-- back button -->
+            <a href="{% url 'home' %}">
+              <button type="submit" id="btn_back">
+                <img src="{% static 'back_arrow.png' %}" id="btn_back_img" alt="back arrow">
+                <p id="back_text">Back</p>
+              </button>
+            </a> 
+           
+        
+        <div class="main_container">
+
+                <div id="button_container">
+                    <form action="" method="POST">  
+                        {% csrf_token %}
+                        <a href = "{% url 'ordering_existing_items' %}">
+                        <div class="tab"><h2 id="tab_text">Ordering existing items</h2></div></a>
+                        <a href="{% url 'ordering_new_items' %}">
+                        <div class="tab"><h2 id="tab_text">Order new items</h2></div></a>
+                        <a href= "{% url 'submit_an_order_ASM' %}">
+                        <div class="tab"><h2 id="tab_text">Order status</h2></div></a>
+                    </form>   
+                </div>
+            </div>
+            {% if msg1 %}
+            <div class="alert">
+              <h3>{{msg1}}</h3>
+              <span class="alertCloseBtn" onclick="this.parentElement.style.display='none';">ok</span> 
+            </div>
+              {% endif %}
+            <div id="banner"><h3>ADYSH</h3></div>
+    </body>
+
+    
