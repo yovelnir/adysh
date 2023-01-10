@@ -34,4 +34,5 @@ urlpatterns = [
     path('logout/', views.logout, name='logout'), 
     path('student_courses/', views.student_courses, name='student_courses'),
     path('pickup/', views.pickup, name = 'pickup'),
+    path('process-selection/', views.process_selection, name = 'process_selection'),
 ]

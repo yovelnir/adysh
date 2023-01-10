@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{% static 'styles.css' %}">
     <link rel="stylesheet" href="{% static 'inventory_stock.css' %}">
-    <title>Stock Page</title>
+    <title>pickup</title>
 <head> 
   
   <body>
@@ -26,8 +26,6 @@
       <div class="imgcontainer">
         <img src="{% static 'SCE_logo.png' %}" alt="Avatar" class="avatar"/>
       </div>
-       
-      <!-- Table for academic staff members -->
         
         <table>
             <thead>
@@ -38,17 +36,48 @@
             </thead>
             <tbody>
               <!--{% for item in items %}-->
-                {% for date,time in items %} 
-                  {% if date != None %}
-                    <tr>
-                    <td>{{ date }}</td>
-                    <td> {{ time }}</td>
-                    </tr>
-                    {% endif %}
-                  {% endfor %}
-                <!--{% endfor %}-->
+              {% for day,hours in items %} 
+              <tr>
+                <td>{{ day }}</td>
+                <!---->
+                <td>
+                  <form action="/process-selection/" method="post">
+                    {% csrf_token %}
+                    <label for="menu">Select a fruit:</label><br>
+                    <select id="menu" name="fruit">
+                      <option value="apple">Apple</option>
+                      <option value="banana">Banana</option>
+                      <option value="mango">Mango</option>
+                    </select>
+                  </form>
+                  
+                  <script>
+                    document.getElementById("menu").onchange = function() {
+                      this.form.submit();
+                    };
+                  </script>
+                  <!-- <form method="POST" action="{% url 'pickup' %}">
+                  <select id="menu">
+                    <option value="value1">Option 1</option>
+                    <option value="value2">Option 2</option>
+                    <option value="value3">Option 3</option>
+                    <option value="value4">Option 4</option>
+                  </select>
+                </form> -->
+                <!-- <span id="dropdown">
+                  <button class="dropbtn">Modify item</button>
+                  <div class="dropdown-content">
+                    <a class="button" href="#popup1">Edit Item</a>
+                    <a class="dropdown_options" href="#popup2">Remove Item</a>
+                    <a class="dropdown_options" href="#popup3">Add Item</a>   
+                  </div> --> 
+                </td>    
+
+              </tr>
+              {% endfor %}
+              <!--{% endfor %}-->
             </tbody>
-          </table> 
+        </table> 
          
           <div id="banner"><h3>ADYSH</h3></div>
       </div>

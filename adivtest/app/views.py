@@ -13,9 +13,10 @@ from reportlab.lib.pagesizes import A4
 import os
 import firebase_admin
 from firebase_admin import credentials, storage
-import datetime
 from datetime import timedelta
+import datetime
 from calendar import monthrange
+from django.http import HttpResponseBadRequest
 
 
 config = {
@@ -516,62 +517,143 @@ def student_courses(request):
     return render(request, "student_courses.html", {'items':items})
 
 
+# def pickup(request):
+#     days_limit = 4
+#     items = list()
+#     email = request.session['email']
+#     name = email[:email.index("@")]
+#     id = str(database.child('users').child(request.session['role']).child(name).child('id').get().val())
+#     all_orders = database.child('orders').get().val()
+#     if id in all_orders:
+#         order = database.child('orders').child(id).get().val()
+#         if order["status"] == "approved":
+#             today = datetime.date.today()
+#             day = today.day
+#             month = today.month
+#             year = today.year
+#             create_schedule_db(year)
+#             counter = 0
+#             hours_list = list()
+#             while counter < days_limit:
+#                 days = database.child('Schedule').child(year).child(month).get().val()
+#                 if days is not None:    
+#                     for i in days:
+#                         hours = database.child('Schedule').child(year).child(month).child(i).get().val()
+#                         if hours is not None:
+#                             for j in hours:
+#                                 if j is not None:
+#                                     if hours[j] == 0:
+#                                         hours_list.append(j)
+#                             items.append((f'{i}/{month}', f'{hours_list}'))
+#                         counter = counter + 1
+#                         if counter == days_limit:
+#                             break
+#                     if counter < days_limit:
+#                         month = month + 1
+#                         if month == 13:
+#                             year = year + 1
+#                             create_schedule_db(year)
+#             return render(request, "pickup.html", {'items':items})  
+#         else:
+#             items.append(('no order is approved',id))
+#     else:
+#         items.append((id,"id is not in orders"))
+#     return render(request, "pickup.html", {'items':items})             
+
+
 def pickup(request):
-    days_limit = 4
     items = list()
+    hours = list()
     email = request.session['email']
     name = email[:email.index("@")]
     id = str(database.child('users').child(request.session['role']).child(name).child('id').get().val())
-
-    if id in database.child('orders').get().val():
-        if database.child('orders').child(id).child('status').get().val() == 'approved':
+    all_orders = database.child('orders').get().val()
+    if id in all_orders:
+        order = database.child('orders').child(id).get().val()
+        if order["status"] == "approved":
             today = datetime.date.today()
             day = today.day
             month = today.month
             year = today.year
-            create_schedule_db(year)
-            counter = 0
-            while counter < days_limit:
-                days = database.child('Schedule').child(year).child(month).get()
-                for d in days.each():
-                    if counter == days_limit:
-                        break
-                    if d is not None:
-                        hours_list = list()
-                        hours = database.child('Schedule').child(year).child(month).child(day).get()
-                        for h in hours.each():
-                            if h.val() == 0:
-                                hours_list.append(h.key())
-                
-                        items.append((f'{d}/{month}', len(hours_list)))
-                    counter = counter + 1
-                if counter < days_limit:
-                    month = month + 1
-                    if month == 13:
-                        year = year + 1
-                        create_schedule_db(year)
-    else:
-        items.append(('no order is approved',id))
-    return render(request, "pickup.html", {'items':items})             
+            count = 1
+            while count != 4:
+                #update_schedule_db(year, today)
+                day1 = database.child('Schedule').child(year).child(month).child(day).get().val()
+                if day1 is not None:
+                    for h in day1:
+                        hours.append(h)
+                items.append((day, hours))
+                day = day + 1
+                count +=1
+                            
+    #     else:
+    #         items.append("no order is approved", 0)
+    # else:
+    #     items.append("no order", 0)       
+    return render(request, "pickup.html", {'items':items})                             
+                    
 
-def create_schedule_db(year1):
-    times = {}
-    for hour in range(10, 18):
-        minuts = 0
-        for i in range(0, 4):
-            if minuts < 10:
-                times[f'{hour}:0{minuts}'] = 0
-            else:
-                times[f'{hour}:{minuts}'] = 0
-            minuts = minuts + 15
 
-    for m in range(1, 13):
-        days = list()
-        for d in range(1, monthrange(year1, m)[1] + 1):
-            obj = datetime.datetime(year=year1, month=m, day=d)
-            if obj.weekday() <= 3 or obj.weekday() == 6:
-                days.append(d)
+            
+    #         counter = 0
+    #         hours_list = list()
+    #         while counter < days_limit:
+    #             days = database.child('Schedule').child(year).child(month).get().val()
+    #             if days is not None:    
+    #                 for i in days:
+    #                     hours = database.child('Schedule').child(year).child(month).child(i).get().val()
+    #                     if hours is not None:
+    #                         for j in hours:
+    #                             if j is not None:
+    #                                 if hours[j] == 0:
+    #                                     hours_list.append(j)
+    #                         items.append((f'{i}/{month}', f'{hours_list}'))
+    #                     counter = counter + 1
+    #                     if counter == days_limit:
+    #                         break
+    #                 if counter < days_limit:
+    #                     month = month + 1
+    #                     if month == 13:
+    #                         year = year + 1
+    #                         update_schedule_db(year)
+    #         return render(request, "pickup.html", {'items':items})  
+    #     else:
+    #         items.append(('no order is approved',id))
+    # else:
+    #     items.append((id,"id is not in orders"))
+
+
+
+
+def update_schedule_db(year1, today):
+    dates = database.child('Schedule').get().val()
+    if year1 not in dates:
+        times = {}
+        for hour in range(10, 18):
+            minuts = 0
+            for i in range(0, 4):
+                if minuts < 10:
+                    times[f'{hour}:0{minuts}'] = 0
+                else:
+                    times[f'{hour}:{minuts}'] = 0
+                minuts = minuts + 15
+
+        for m in range(1, 13):
+            days = list()
+            for d in range(1, monthrange(year1, m)[1] + 1):
+                obj = datetime.datetime(year=year1, month=m, day=d)
+                if obj.weekday() <= 3 or obj.weekday() == 6:
+                    days.append(d)
         
-        for x in days:            
-            database.child('Schedule').child(year1).child(m).child(str(x)).set(times)       
-        days.clear()        
+            for x in days:            
+                database.child('Schedule').child(year1).child(m).child(str(x)).set(times)       
+            days.clear()
+    else:
+        day = today.day
+
+def process_selection(request):
+    if request.method == 'POST':
+        selected_value = request.POST['fruit']
+        return HttpResponse('Success')
+    else:
+        return HttpResponseBadRequest('Bad request')
