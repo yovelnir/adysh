@@ -37,5 +37,6 @@ urlpatterns = [
     path('student_courses/', views.student_courses, name='student_courses'),
     path('ordering_existing_items_ASM/',views.ordering_existing_items_table,name='ordering_existing_items'),
     path('ordering_existing_items_request/',views.ordering_existing_items_request,name='ordering_existing_items_request'),
+    path('student_ordering/', views.student_ordering, name="student_ordering"),
     
 ]

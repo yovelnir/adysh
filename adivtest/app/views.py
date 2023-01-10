@@ -13,7 +13,7 @@ from reportlab.lib.pagesizes import A4
 import os
 import firebase_admin
 from firebase_admin import credentials, storage
-from datetime import timedelta
+from datetime import timedelta, date
 
 
 config = {
@@ -561,3 +561,98 @@ def  ordering_existing_items_request(request):
         #return redirect('/home')        
     return redirect('/home')
 
+
+def student_ordering(request):
+    email = request.session['email']
+    short_mail = email[:email.index('@')]
+    user_data = database.child('users').child('students').child(short_mail).get().val()
+    uid = user_data['id']
+    inventory = database.child('Inventory').get().val()
+
+
+    if request.POST.get('courseFilter'):
+        course = request.POST.get('courseFilter')
+    elif request.POST.get('course'):
+        course = request.POST.get('course')
+    elif 'courses' in user_data:
+        course = user_data['courses'][0]
+    else:
+        course = None
+    user_data['course'] = course
+
+    if request.POST.get('order'):
+        order_details = dict(zip(request.POST.getlist('items'), request.POST.getlist('amount')))
+        order_details = {k: int(v) for k,v in order_details.items()}
+        order = {'date': str(date.today()), 'order details': order_details, 'role': 1, 'status': 'approved'}
+        orders = database.child('orders').get().val()
+        if str(uid) in orders:
+            for item in order_details:
+                if item in orders[str(uid)]['order details']:
+                    current = orders[str(uid)]['order details'][item]
+                    up = {item: int(order_details[item]) + int(current)}
+                    database.child('orders').child(uid).child('order details').update(up)
+                else:
+                    database.child('orders').child(uid).child('order details').update({item: order_details[item]})
+        else:
+            database.child('orders').child(uid).set(order)
+
+        database.child('users').child('students').child(short_mail).child('requirements').child(course).update(order_details)
+
+        for k, i in inventory.items():
+            if i['product_name'] in order_details:
+                if i['Consumable'] == '0':
+                    student = database.child('users').child('students').child(short_mail)
+                    student.child('loaning').child(i['product_name']).update({'Quantity': order_details[i['product_name']],
+                                                                              'Date': str(date.today()),
+                                                                              'Return': str(date(2023,1,19))})
+                database.child('Inventory').child(k).update({'Quantity': i['Quantity'] - order_details[i['product_name']]})
+
+        if request.POST.get('notify'):
+            notify = request.POST.getlist('notify')
+            notify = {x : inventory[x]['product_name'] for x in notify}
+            database.child('users').child('students').child(short_mail).child('notify').update(notify)
+
+
+
+        user_data = database.child('users').child('students').child(short_mail).get().val()
+        user_data['course'] = course
+    
+    if course:
+        requirements = database.child('Courses').child(course).child('requirements').get().val()
+        user_data['req'] = {}
+
+        if 'loaning' in user_data:
+            print('hello')
+            for item in dict(requirements):
+                if item in user_data['loaning'] and course not in user_data['requirements']:
+                    add = {item: 1}
+                    database.child('users').child('students').child(short_mail).child('requirements').child(course).update(add)
+                    requirements.pop(item)
+                elif item in user_data['loaning'] and item not in user_data['requirements'][course]:
+                    add = {item: 1}
+                    database.child('users').child('students').child(short_mail).child('requirements').child(course).update(add)
+                    requirements.pop(item)
+
+        if 'requirements' in user_data:
+            if course in user_data['requirements']:
+                if dict(requirements) == user_data['requirements'][course]:
+                    user_data['filled'] = True
+                    return render(request, "student_ordering.html", user_data)
+                else:
+                    for k in dict(requirements):
+                        if k in user_data['requirements'][course] and requirements[k] == user_data['requirements'][course][k]:
+                            requirements.pop(k)
+                        elif k in user_data['requirements'][course]:
+                            requirements[k] = int(requirements[k]) - int(user_data['requirements'][course][k])
+
+        for k in requirements:
+            for s, i in inventory.items():
+                if i['product_name'] == k:               
+                    user_data['req'][k] = {'quantity': requirements[k],
+                                        'available_quantity': i['Quantity'],
+                                        'loan': i['Consumable'],
+                                        'serial': s,}
+                    break
+
+
+    return render(request, "student_ordering.html", user_data)
