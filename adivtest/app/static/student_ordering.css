@@ -1,0 +1,126 @@
+body{ 
+    background-color: rgb(236, 234, 234);
+}
+.imagcontainer {
+    text-align: center;
+    margin: 0 0 32px 0;
+    position: relative;
+    display: flex;
+    justify-content: center; 
+   
+  }
+
+table th, td {
+    border: 1px solid; 
+    height: 60%; 
+    
+}  
+tr, td{ 
+    padding: 20px; 
+
+} 
+.main_container{ 
+    padding-top: 8px;
+    margin-top: 32px; 
+    margin-left: auto; 
+    margin-right: auto; 
+    background-color: whitesmoke; 
+    width: 70%; 
+    height: 100%;
+}
+table{  
+    margin-top: 0;
+    margin-left: auto; 
+    margin-right: auto; 
+    width: 100%; 
+}
+
+
+.btn_filter{ 
+    display: inline; 
+    background-color: #04AA6D;
+    color: white;
+    padding: 10px 15px;
+    margin:auto;
+    text-align: center;
+    border: none; 
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: all 0.2s ease-in-out;
+} 
+.btn_filter:hover{
+    background-color: #04aa30;
+}
+
+.submitBtn{
+    font-size: 15px;
+    display: inline; 
+    background-color: #04AA6D;
+    color: white;
+    padding: 10px 15px;
+    margin:auto;
+    text-align: center;
+    border: none; 
+    border-radius: 5px;
+    cursor: pointer; 
+    width: 100%;
+    transition: all 0.2s ease-in-out;
+}
+.submitBtn:hover{
+    font-size: 20px;
+    background-color: #04aa44;
+}
+
+#filter_container{ 
+    margin-top: 32px;  
+    text-align: center;  
+    display: inline; 
+} 
+
+.reqFilled{
+    position: relative;
+    margin: auto;
+    font-size: 25px;
+    text-align: center;
+}
+
+.itemTable{
+    margin:auto;
+    text-align:center;
+}
+
+#loanedText{
+    font-size: 30px;
+    padding-bottom: 5px;
+    color: white;
+    width: 99%;
+    border-radius: 20px;
+    margin: auto;
+    box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+    background-color: #04AA6D;
+}
+
+#menubtn{
+    background-color: white; 
+    color: black;
+    width: 70px; 
+    height: 35px; 
+    border-radius: 5px; 
+    text-align: center;
+    vertical-align: baseline;
+    line-height: 5px;
+    margin-top: 12px; 
+    margin-left: 8px; 
+    font-weight: bold; 
+    cursor: pointer;
+    transition: all 0.2s linear;   
+    display: inline;
+} 
+  
+#menubtn:hover{  
+    font-weight: 700;
+    opacity: 0.8; 
+    width: 80px; 
+    height: 35px;
+}

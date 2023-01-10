@@ -1,0 +1,133 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+      <meta charset="UTF-8">
+      <meta http-equiv="X-UA-Compatible" content="IE=edge">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <link rel="shortcut icon" type="image/png" href="{% static 'fav/favicon.ico' %}"/>
+      <link rel="stylesheet" href="{% static 'styles.css' %}">
+      <link rel="stylesheet" href="{% static 'student_ordering.css' %}">
+      <title>Order Exist item</title>
+  </head>
+
+  <body>
+  
+
+      <div class="main_container">
+        
+        <!-- back button -->
+        <div class="back_button">
+          <a href="{% url 'home' %}">
+            <button type="submit" id="menubtn">
+            <p>Menu</p>
+          </button>
+        </a>   
+      </div>
+        <!-- SCE Logo -->
+        <div class="imgcontainer">
+          <img src="{% static 'SCE_logo.png' %}" alt="Avatar" class="avatar"/>
+        </div>
+        
+        <div id="filter_container"> 
+          <form action="" method="POST">
+            {% csrf_token %}
+            {% for course in courses %}
+            <button class="btn_filter" type="submit" name="courseFilter" value="{{course}}">{{course}}</button> 
+            {% endfor %}
+        </div> 
+
+      {% if not filled %}
+      <form id="ordering" class ="req_form" action="{% url 'ordering_existing_items_request' %}" method="POST" onsubmit="submitBtn.disabled=true; submitBtn.value='Sending Request...'">
+        {% csrf_token %}
+        <table class="itemTable">
+          <thead>
+            <tr>
+              <th>Item Required</th>
+              <th>Required Quantity</th>
+              <th>Available Quantity</th>
+              <th>Loan Item</th>
+            </tr>
+          </thead>
+          <tbody>
+              <input type="checkbox" hidden checked name="course" value="{{course}}">
+              {% for k,v in req.items %} 
+                  {% if v.quantity != 0 %}
+                  {% if k not in loaning or not loaning %}
+                      <tr>
+                      <td>
+                        {% if v.available_quantity == 0 %}
+                        {{k}} <p style="color: red;">Out of Stock</p>
+                        {% elif v.quantity > v.available_quantity %}
+                        <input class="reqBox" type="checkbox" id="reqBox[]" value="{{k}}" name="items" />
+                        <input hidden checked class="Amount" type="number" id="Amount[]" value="{{v.available_quantity}}" name="amount" />
+                        {{k}} <p style="color: orange;">Can only order {{v.available_quantity}} of this item</p>
+                        {%else%}
+                        <input class="reqBox" type="checkbox" id="reqBox[]" value="{{k}}" name="items" />{{k}}
+                        <input hidden checked class="Amount" type="number" id="Amount[]" value="{{v.quantity}}" name="amount" />
+                        {% endif %}
+                      </td>
+                      <td>{{v.quantity}}
+                        {% if v.available_quantity == 0 %}
+                        <br>
+                        <input type="checkbox" id="notify[]" name="notify" value="{{v.serial}}">Notfiy me when back in stock</input>
+                       {% endif %} 
+                      </td> 
+                      <td>{{v.available_quantity}}</td>
+                      {% if v.loan == '0' %}
+                      <td>Item needs loaning</td>
+                      {% else %}
+                      <td>Item does not need loaning</td>
+                      {% endif %}
+                      </tr>
+                    {% endif %}
+                  {% endif %}
+              {% endfor %}
+          </tbody>
+        </table>
+        <button class="submitBtn" type="submit" name="order" value="0">Send Request</button>
+      </form>
+        {% else %}
+        <div class="reqFilled">
+          <p>All required items for {{course}} have already been ordered.</p>
+          <p>You can view the requirements for this course at <a style="color:blue;" href="{% url 'student_courses' %}">My Courses</a></p>
+        </div>   
+        {% endif %}
+
+        {% if loaning %}
+        <br><br>
+        <div class="itemTable">
+        <div id="loanedText">Loaned items for {{course}}:</div> 
+        <br>
+        <table>
+          <thead>
+            <tr>
+              <th>Item Loaned</th>
+              <th>Quantity</th>
+              <th>Loan Date</th>
+              <th>Return by Date</th>
+            </tr>
+          </thead>
+          <tbody>
+              {% for k,v in loaning.items %} 
+                      <td>{{k}}</td>
+                      <td>{{v.Quantity}}</td>
+                      <td>{{v.Date}}</td>
+                      <td>{{v.Return}}</td>
+              {% endfor %}
+            </form>
+          </tbody>
+        </table>
+      </div>
+
+        {% endif %}
+        <div id="banner"><h3>ADYSH</h3></div>
+    </div>
+
+
+    <!-- Need to implement: *succes messege
+                            *you can fill amount only if you checked in checkbox  -->
+  </body>
+</html>
+    
+        
