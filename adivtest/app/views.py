@@ -589,6 +589,11 @@ def ordering_new_items(request):
         if(user_id == database.child('order_new_items').child(i.key()).get().key()):
             return render(request,'submit_an_order_ASM.html',{"msg2":"you already orderd! please wait until your order approved"})
     
+    if request.POST.get("comment"):
+        status={'status':'pending','items':request.POST.get("comment")}
+        database.child('order_new_items').child(user_id).set(status)
+        return redirect('/home')
+    return render(request,'ordering_new_items.html')
 
 def student_ordering(request):
     email = request.session['email']
@@ -684,9 +689,3 @@ def student_ordering(request):
 
 
     return render(request, "student_ordering.html", user_data)
-
-    if request.POST.get("comment"):
-        status={'status':'pending','items':request.POST.get("comment")}
-        database.child('order_new_items').child(user_id).set(status)
-        return redirect('/home')
-    return render(request,'ordering_new_items.html')
