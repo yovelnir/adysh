@@ -8,7 +8,8 @@
     <link rel="shortcut icon" type="image/png" href="{% static 'fav/favicon.ico' %}"/>
     <link rel="stylesheet" href="{% static 'css/bootstrap.min.css'' %}" />
     <script src="{% static 'js/bootstrap.min.js' %}"></script>  
-    <link rel="stylesheet" href="{% static 'styles.css' %}" />
+    <link rel="stylesheet" href="{% static 'styles.css' %}" /> 
+    <link rel="stylesheet" href="{% static 'main_Student.css' %}">
     
     <title>Main Page</title>
   </head>
@@ -31,7 +32,8 @@
   
   <body>  
     <div class="nav-header">
-      <header class="navbar">
+      <header class="navbar"> 
+        
         <a href="{% url 'logout' %}">
           <span>
           <button type="submit" id="logoutbtn">
@@ -46,12 +48,44 @@
         <img src="{% static 'SCE_logo.png' %}" alt="Avatar" class="avatar" />
       </span>
     </header>
+  </div> 
+
+  <!-- Notification button --> 
+  <div class="box">
+    <a class="button" href="#popup1"><img src="{% static 'notification_icon.png' %}" id="notification_icon" alt="bell icon"></a>
   </div>
+  
+  <div id="popup1" class="overlay">
+    <div class="popup">
+      <h2>Notification Center</h2>
+      <a class="close" href="#">&times;</a>
+      <div class="content">
+        {% if request.session.notify %} 
+    <table>
+    <tbody>
+        {% for key,value in request.session.notify.items %} 
+            <tr>
+                <td>{{ key }}</td>
+                <td>{{ value }}</td>   
+            </tr>  
+        {% endfor %}  
+        {% else %} 
+        <tr> 
+          <span>There are no new notifications</span>
+        </tr>
+    </tbody>
+    </table>  
+{% endif %}
+      </div>
+    </div>
+  </div> 
+  <!-- End of notification button -->
 
     <div class="container">
       <a href = "{% url 'student_courses' %}">
       <div class="tab"><h2 id="tab_text">My Courses</h2></div></a>
-      <div class="tab"><h2 id="tab_text">New Order Request</h2></div>
+      <a href= "{% url 'student_ordering' %}">
+      <div class="tab"><h2 id="tab_text">New Order Request</h2></div></a>
       <a href = "{% url 'pickup' %}">
       <div class="tab"><h2 id="tab_text">Pickup</h2></div></a>
     </div>
@@ -68,4 +102,10 @@
 
   </body>
 </html>
+
+
+
+
+
+
 
