@@ -80,7 +80,8 @@ def postLogin(request):
     user_data['inventory'] = inventory
 
     #----Rendering home page based on user's role----#
-    if request.session['role'] == 'students':
+    if request.session['role'] == 'students':  
+        request = checkNotification(request, short_mail)  
         return render(request,"main_Student.html",user_data)
     elif request.session['role'] == 'managers':
         user_data['courses'] = database.child('Courses').get().val()
@@ -353,7 +354,10 @@ def editInventory(request):
             new_product_name = database.child('Inventory').child(serial_number).child('product_name').get().val()
         
         if request.POST['quantity'] != "":
-            new_quantity = request.POST['quantity']  
+            new_quantity = request.POST['quantity'] 
+            #======= Notfiy students that the item is back in stock 
+            if database.child('Inventory').child(serial_number).child('Quantity').get().val() < int(new_quantity):
+                notifyStudents(request) 
         else: 
             new_quantity = database.child('Inventory').child(serial_number).child('Quantity').get().val()
 
@@ -663,7 +667,6 @@ def student_ordering(request):
         user_data['req'] = {}
 
         if 'loaning' in user_data:
-            print('hello')
             for item in dict(requirements):
                 if item in user_data['loaning'] and course not in user_data['requirements']:
                     add = {item: 1}
@@ -695,5 +698,60 @@ def student_ordering(request):
                                         'serial': s,}
                     break
 
+    return render(request, "student_ordering.html", user_data) 
 
-    return render(request, "student_ordering.html", user_data)
+
+
+def notifyStudents(request): 
+    serial_number = request.POST['serial_number']
+    student_list = database.child('users').child('students').get() 
+
+    
+    for student in student_list.each():  
+        field = student.val()      
+        
+        #======= Checking if student marked this item to be notified
+        if 'notify' in field:  
+            if serial_number in field['notify']:  
+                user_name = field['full_name'].split()[0]       
+        #======= Updating in student database the item is now avilable       
+                database.child('users').child('students').child(user_name).child('notify').update({serial_number:'Is Back In Stock'}) 
+    
+def checkNotification(request, user_name): 
+    notifications = database.child('users').child('students').child(user_name).child('notify').get()
+    dict = {} 
+    
+    if notifications.val() == None:  
+        request.session['notify'] = dict
+        return request
+
+    for item in notifications.each(): 
+        if 'Back In Stock' in item.val():
+            product_name = database.child('Inventory').child(item.key()).child('product_name').get().val()
+            if product_name != None:
+                dict[product_name] = item.val()
+
+    request.session['notify'] = dict 
+    
+    return request 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

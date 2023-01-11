@@ -40,5 +40,5 @@ urlpatterns = [
     path('student_ordering/', views.student_ordering, name="student_ordering"),
     path('ordering_existing_items_ASM/',views.order_status,name='ordering_existing_items'),
     path('order_status/',views.order_status,name='order_status'),
-    path('ordering_new_items/',views.ordering_new_items,name='ordering_new_items')
+    path('ordering_new_items/',views.ordering_new_items,name='ordering_new_items'),
 ]
