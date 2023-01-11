@@ -35,47 +35,23 @@
               </tr>
             </thead>
             <tbody>
-              <!--{% for item in items %}-->
+              
+              <form method="POST" action=" {% url 'pickup' %}">
+              {% csrf_token %}
               {% for day,hours in items %} 
               <tr>
                 <td>{{ day }}</td>
-                <!---->
                 <td>
-                  <form action="/process-selection/" method="post">
-                    {% csrf_token %}
-                    <label for="menu">Select a fruit:</label><br>
-                    <select id="menu" name="fruit">
-                      <option value="apple">Apple</option>
-                      <option value="banana">Banana</option>
-                      <option value="mango">Mango</option>
-                    </select>
-                  </form>
-                  
-                  <script>
-                    document.getElementById("menu").onchange = function() {
-                      this.form.submit();
-                    };
-                  </script>
-                  <!-- <form method="POST" action="{% url 'pickup' %}">
-                  <select id="menu">
-                    <option value="value1">Option 1</option>
-                    <option value="value2">Option 2</option>
-                    <option value="value3">Option 3</option>
-                    <option value="value4">Option 4</option>
+                  <select name="hour", id="hour">
+                    {% for h in hours %}
+                      <option value="{{day}}/{{h}}">{{ h }}</option>
+                    {% endfor %}
                   </select>
-                </form> -->
-                <!-- <span id="dropdown">
-                  <button class="dropbtn">Modify item</button>
-                  <div class="dropdown-content">
-                    <a class="button" href="#popup1">Edit Item</a>
-                    <a class="dropdown_options" href="#popup2">Remove Item</a>
-                    <a class="dropdown_options" href="#popup3">Add Item</a>   
-                  </div> --> 
+                  <button id="submit-button">Submit</button>
                 </td>    
-
               </tr>
               {% endfor %}
-              <!--{% endfor %}-->
+              </form> 
             </tbody>
         </table> 
          

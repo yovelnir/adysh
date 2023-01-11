@@ -480,6 +480,7 @@ def student_courses(request):
     email = request.session['email']
     name = email[:email.index("@")]
     items = list()
+    flag = 0
     courses_list = list()
     courses_db = database.child('users').child('students').child(name).child('courses').get()
     all_courses = database.child('Courses').get()
@@ -491,6 +492,7 @@ def student_courses(request):
         c_name = c.key()
         if c_name is not None:
             if c_name in courses_list:
+                flag = 1
                 name_w_pdf = f'{c_name} requirements list.pdf'
                 current_dir = f'{os.getcwd()}\{name_w_pdf}'
                 pdf_data = []
@@ -601,117 +603,68 @@ def ordering_new_items(request):
     return render(request,'ordering_new_items.html')
 
 
-# def pickup(request):
-#     days_limit = 4
-#     items = list()
-#     email = request.session['email']
-#     name = email[:email.index("@")]
-#     id = str(database.child('users').child(request.session['role']).child(name).child('id').get().val())
-#     all_orders = database.child('orders').get().val()
-#     if id in all_orders:
-#         order = database.child('orders').child(id).get().val()
-#         if order["status"] == "approved":
-#             today = datetime.date.today()
-#             day = today.day
-#             month = today.month
-#             year = today.year
-#             create_schedule_db(year)
-#             counter = 0
-#             hours_list = list()
-#             while counter < days_limit:
-#                 days = database.child('Schedule').child(year).child(month).get().val()
-#                 if days is not None:    
-#                     for i in days:
-#                         hours = database.child('Schedule').child(year).child(month).child(i).get().val()
-#                         if hours is not None:
-#                             for j in hours:
-#                                 if j is not None:
-#                                     if hours[j] == 0:
-#                                         hours_list.append(j)
-#                             items.append((f'{i}/{month}', f'{hours_list}'))
-#                         counter = counter + 1
-#                         if counter == days_limit:
-#                             break
-#                     if counter < days_limit:
-#                         month = month + 1
-#                         if month == 13:
-#                             year = year + 1
-#                             create_schedule_db(year)
-#             return render(request, "pickup.html", {'items':items})  
-#         else:
-#             items.append(('no order is approved',id))
-#     else:
-#         items.append((id,"id is not in orders"))
-#     return render(request, "pickup.html", {'items':items})             
-
 
 def pickup(request):
+    max_days_to_show = 10
     items = list()
     hours = list()
     email = request.session['email']
     name = email[:email.index("@")]
     id = str(database.child('users').child(request.session['role']).child(name).child('id').get().val())
     all_orders = database.child('orders').get().val()
-    if id in all_orders:
+    if id not in all_orders:
+        request.session['msg'] = "you have no orders pending"
+        return redirect('/home')
+    else:
         order = database.child('orders').child(id).get().val()
         if order["status"] == "approved":
-            today = datetime.date.today()
-            day = today.day
-            month = today.month
-            year = today.year
-            count = 1
-            while count != 4:
-                #update_schedule_db(year, today)
-                day1 = database.child('Schedule').child(year).child(month).child(day).get().val()
-                if day1 is not None:
-                    for h in day1:
-                        hours.append(h)
-                items.append((day, hours))
-                day = day + 1
-                count +=1
-                            
-    #     else:
-    #         items.append("no order is approved", 0)
-    # else:
-    #     items.append("no order", 0)       
+            # if order["date"] == 0:
+                today = datetime.date.today()
+                day = today.day + 1
+                month = today.month
+                year = today.year
+                count = 1
+                update_schedule_db(year)
+                while count != max_days_to_show:
+                    # m_db = database.child('Schedule').child(year).child(month).get().val()
+                    # if day in m_db:
+                        day1 = database.child('Schedule').child(year).child(month).child(day).get().val()
+                        if day1 is not None:
+                            for h in day1:
+                                if day1[h] == 0:
+                                    hours.append(h)
+                        items.append((f'{day}.{month}', hours))
+                        day = day + 1
+                        count += 1
+                        if day > monthrange(year, month)[1]:
+                            day = 1
+                            month += 1
+                            if month == 13:
+                                month = 1
+                                year += 1
+                                update_schedule_db(year)
+        if request.POST.get("hour"):
+            answer = str(request.POST.get("hour"))
+            name = email[:email.index("@")]
+            d = answer[:answer.index(".")]
+            m = answer[answer.index(".") + 1:answer.index("/")]
+            h = answer[answer.index("/") + 1:]
+            print(answer)
+            print(d)
+            print(m)
+            print(h)
+            database.child('orders').child(id).child("date").set(f'{d}.{m}.{year}/{h}')
+            database.child('Schedule').child(year).child(m).child(d).child(h).set(id)
+            request.session['msg'] = "pickup was scheduled successfully"
+            return redirect('/home')
     return render(request, "pickup.html", {'items':items})                             
-                    
-
-
-            
-    #         counter = 0
-    #         hours_list = list()
-    #         while counter < days_limit:
-    #             days = database.child('Schedule').child(year).child(month).get().val()
-    #             if days is not None:    
-    #                 for i in days:
-    #                     hours = database.child('Schedule').child(year).child(month).child(i).get().val()
-    #                     if hours is not None:
-    #                         for j in hours:
-    #                             if j is not None:
-    #                                 if hours[j] == 0:
-    #                                     hours_list.append(j)
-    #                         items.append((f'{i}/{month}', f'{hours_list}'))
-    #                     counter = counter + 1
-    #                     if counter == days_limit:
-    #                         break
-    #                 if counter < days_limit:
-    #                     month = month + 1
-    #                     if month == 13:
-    #                         year = year + 1
-    #                         update_schedule_db(year)
-    #         return render(request, "pickup.html", {'items':items})  
-    #     else:
-    #         items.append(('no order is approved',id))
-    # else:
-    #     items.append((id,"id is not in orders"))
-
-
-
-
-def update_schedule_db(year1, today):
+ 
+def update_schedule_db(year1):
     dates = database.child('Schedule').get().val()
-    if year1 not in dates:
+    year1 = str(year1)
+    if year1 in dates:
+        return
+    else:
         times = {}
         for hour in range(10, 18):
             minuts = 0
@@ -732,12 +685,3 @@ def update_schedule_db(year1, today):
             for x in days:            
                 database.child('Schedule').child(year1).child(m).child(str(x)).set(times)       
             days.clear()
-    else:
-        day = today.day
-
-def process_selection(request):
-    if request.method == 'POST':
-        selected_value = request.POST['fruit']
-        return HttpResponse('Success')
-    else:
-        return HttpResponseBadRequest('Bad request')

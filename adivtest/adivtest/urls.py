@@ -41,5 +41,4 @@ urlpatterns = [
     path('order_status/',views.order_status,name='submit_an_order_ASM'),
     path('ordering_new_items/',views.ordering_new_items,name='ordering_new_items'),
     path('pickup/', views.pickup, name = 'pickup'),
-    path('process-selection/', views.process_selection, name = 'process_selection'),
 ]
