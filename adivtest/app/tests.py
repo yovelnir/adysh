@@ -1,11 +1,10 @@
 from django.test import TestCase
 import time
 from django.conf import settings
-from .views import firebase
-from .views import removeInventory 
-from .views import NewItemInventory 
-from .views import editInventory
-from django.http import HttpRequest 
+from .views import *
+from django.http import HttpRequest
+from django.conf import settings
+from importlib import import_module 
 
 
 
@@ -13,84 +12,185 @@ from django.http import HttpRequest
 db = firebase.database()
 auth = firebase.auth()
 
-# class StudentTestCase(TestCase):
-#     def setUp(self):
-#         auth.sign_in_with_email_and_password("studenttest@test.com", "123456")
+class LoginPageTest(TestCase):
+    def test_login_page(self):
+        request = HttpRequest()
+        request.session = {}
+        request.session['uid'] = None
+        self.assertEqual(login_page(request).status_code, 200, "Login page not working")
+
+class LogOutTest(TestCase):
+    def test_logout(self):
+        request = HttpRequest()
+        request.session = {}
+        request.session['uid'] = '12345678'
+        self.assertEqual(logout(request).status_code, 200, "Login page not working")
+        self.assertEqual(request.session.get('uid'), None, "User session still exists!")
+
+class StudentTestCase(TestCase):
+    def test_student_login(self):
+        request = HttpRequest()
+        request.session = {}
+        request.session['uid'] = None
+
+        request.POST['email'] = 'student@test.com'
+        request.POST['password'] = '123456'
+
+        response = postLogin(request)
+        self.assertEqual(response.status_code, 200)
+
+class StaffTestCase(TestCase):
+    def test_student_login(self):
+        request = HttpRequest()
+        request.session = {}
+        request.session['uid'] = None
+
+        request.POST['email'] = 'staff@test.com'
+        request.POST['password'] = '123456'
+
+        response = postLogin(request)
+        self.assertEqual(response.status_code, 200)
+
+class ManagerTestCase(TestCase):
+    def test_student_login(self):
+        request = HttpRequest()
+        request.session = {}
+        request.session['uid'] = None
+
+        request.POST['email'] = 'manager@test.com'
+        request.POST['password'] = '123456'
+
+        response = postLogin(request)
+        self.assertEqual(response.status_code, 200)
+
+class ManageUsers(TestCase):
+
+    def test_create_student(self):
+        request = HttpRequest()
+        request.session = {}
+
+        request.POST['email'] = 'studenttest@test.test'
+        request.POST['fname'] = 'student'
+        request.POST['lname'] = 'test'
+        request.POST['password'] = '123456'
+        request.POST['id'] = 123456789
+        request.POST['role'] = 1
+
+        response = create_user(request)
+        self.assertEqual(response.status_code, 302)
+
+        user_data = db.child('users').child('students').child('studenttest').get().val()
+        self.assertTrue(user_data, 'User was not created correctly in database!')
+        self.assertEqual(user_data['id'], request.POST['id'])
+        self.assertEqual(user_data['full_name'], '{} {}'.format(request.POST['fname'], request.POST['lname']))
+        self.assertEqual(user_data['password'], request.POST['password'])
+
+    def test_create_staff(self):
+        request = HttpRequest()
+        request.session = {}
+
+        request.POST['email'] = 'stafftest@test.test'
+        request.POST['fname'] = 'staff'
+        request.POST['lname'] = 'test'
+        request.POST['password'] = '123456'
+        request.POST['id'] = 123456789
+        request.POST['role'] = 3
+
+        response = create_user(request)
+        self.assertEqual(response.status_code, 302)
+
+        user_data = db.child('users').child('staff').child('stafftest').get().val()
+        self.assertTrue(user_data, 'User was not created correctly in database!')
+        self.assertEqual(user_data['id'], request.POST['id'])
+        self.assertEqual(user_data['full_name'], '{} {}'.format(request.POST['fname'], request.POST['lname']))
+        self.assertEqual(user_data['password'], request.POST['password'])
+
+    def test_create_manager(self):
+        request = HttpRequest()
+        request.session = {}
+
+        request.POST['email'] = 'managertest@test.test'
+        request.POST['fname'] = 'manager'
+        request.POST['lname'] = 'test'
+        request.POST['password'] = '123456'
+        request.POST['id'] = 123456789
+        request.POST['role'] = 2
+
+        response = create_user(request)
+        self.assertEqual(response.status_code, 302)
+
+        user_data = db.child('users').child('managers').child('managertest').get().val()
+        self.assertTrue(user_data, 'User was not created correctly in database!')
+        self.assertEqual(user_data['id'], request.POST['id'])
+        self.assertEqual(user_data['full_name'], '{} {}'.format(request.POST['fname'], request.POST['lname']))
+        self.assertEqual(user_data['password'], request.POST['password'])
+
+    def test_remove_student(self):
+        request = HttpRequest()
+        request.session = {}
+        request.session['email'] = None
+        request.POST['email'] = 'studenttest@test.test'
+
+        response = remove_user(request)
+        self.assertEqual(response.status_code, 302)
+
+        user_data = db.child('users').child('students').child('studenttest').get().val()
+        self.assertFalse(user_data, 'User was not removed from the database!')
+        
+    def test_remove_staff(self):
+        request = HttpRequest()
+        request.session = {}
+        request.session['email'] = None
+        request.POST['email'] = 'stafftest@test.test'
+
+        response = remove_user(request)
+        self.assertEqual(response.status_code, 302)
+
+        user_data = db.child('users').child('staff').child('stafftest').get().val()
+        self.assertFalse(user_data, 'User was not removed from the database!')
+
+    def test_remove_manager(self):
+        request = HttpRequest()
+        request.session = {}
+        request.session['email'] = None
+        request.POST['email'] = 'managertest@test.test'
+
+        response = remove_user(request)
+        self.assertEqual(response.status_code, 302)
+
+        user_data = db.child('users').child('staff').child('managertest').get().val()
+        self.assertFalse(user_data, 'User was not removed from the database!')
     
-#     def test_student_login(self):
-#         email, passw = "studenttest@test.com", "123456"
-#         student = auth.sign_in_with_email_and_password(email, passw)
-#         student_data = db.child('users').child(email[:email.index('@')]).get().val()
+    def test_remove_student_course(self):
+        db.child('users').child('students').child('student').child('courses').update({0: 'test1',})
+        request = HttpRequest()
+        request.session = {}
+        request.POST['student'] = 'student'
+        request.POST['courseRemove'] = 'test1'
 
-#         #Check if the user is really looged in
-#         self.assertTrue(auth.current_user)
-#         #Checking if user data is equal
-#         self.assertEqual(student['idToken'], auth.current_user['idToken'], "It is the same user!")
-#         self.assertEqual(student_data['role'], 1, "User should be role 1 (student)")
+        response = remove_from_course(request)
+        self.assertEqual(response.status_code, 302)
+        data = db.child('users').child('students').child('student').child('courses').get().val()
+        self.assertFalse(data, "courses were not removed from database!")
+
         
-# auth.current_user = None      
+class Requirements(TestCase):
+    def test_send_requirements(self):
+        request = HttpRequest()
+        request.session = {}
 
-# class AcademicStaffTestCase(TestCase): 
-#     def setUp(self):
-#         auth.sign_in_with_email_and_password("stafftest@test.com", "123456") 
-        
-#     def test_ASM_login(self): 
-#         email, passw = "stafftest@test.com", "123456"
-#         ASM = auth.sign_in_with_email_and_password(email, passw)
-#         ASM_data = db.child('users').child(email[:email.index('@')]).get().val()
+        request.POST['reqBox'] = 'Camera'
+        request.POST['quantity'] = 1
+        request.POST['course'] = 'test_course'
 
-#         #Check if the user is really looged in
-#         self.assertTrue(auth.current_user)
-#         #Checking if user data is equal
-#         self.assertEqual(ASM['idToken'], auth.current_user['idToken'], "It is the same user!")
-#         self.assertEqual(ASM_data['role'], 3, "User should be role 3 (academic staff member)")
+        response = send_requirements(request)
+        self.assertEqual(response.status_code, 302)
 
-# auth.current_user = None  
+        data = db.child('Courses').child('test_course').child('requirements').get().val()
+        self.assertTrue(data, "requirements were not sent!")
+        self.assertEqual(data[request.POST['reqBox']], request.POST['quantity'])
+        db.child('Courses').child('test_course').remove()
 
-# class managerTestCase(TestCase):
-#     def setUp(self):
-#         auth.sign_in_with_email_and_password("managertest@test.com", "123456")
-    
-#     def test_manager_login(self):
-#         email, passw = "managertest@test.com", "123456"  
-#         manager = auth.sign_in_with_email_and_password(email,passw)      
-#         manager_data = db.child('users').child(email[:email.index('@')]).get().val() 
-
-#         self.assertTrue(auth.current_user)
-#         #Checking if user data is equal to db data
-#         self.assertEqual(manager['idToken'], auth.current_user['idToken'], "It is the same user!")
-#         self.assertEqual(manager_data['role'], 2, "User should be role 2 ( warehouse manager)")
-        
-# auth.current_user = None
-
-# class ManageUsers(TestCase):
-
-#     def testCreation(self):
-
-#         auth.create_user_with_email_and_password('test@test.com','123456') 
-#         user = auth.sign_in_with_email_and_password('test@test.com', '123456')
-
-#         email = 'test@test.com' 
-#         full_name = 'test test' 
-#         num_id = 123123123 
-#         role = 1
-
-#         db.child('users').child('test').child(email[0:email.index('@')]).set({
-#         'idToken': user['idToken'],
-#         'full_name': full_name,
-#         'id': num_id,
-#         'role': role,
-#     })
-#         self.assertNotEqual(user,None) 
-
-
-#     def testDelete(self):     
-#         email = 'test@test.com' 
-#         user = auth.sign_in_with_email_and_password('test@test.com', '123456') 
-#         auth.delete_user_account(user['idToken'])  
-#         db.child('users').child('test').child(email[0:email.index('@')]).remove()
-#         idToken = db.child('users').child(email[:email.index('@')]).child('idToken').get().val()
-#         self.assertNotEqual(user['idToken'] ,idToken)
 
 class ViewInventory(TestCase):  #Working
     def test_Inventory_Staff(self):

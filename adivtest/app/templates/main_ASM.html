@@ -285,7 +285,7 @@
               {% for k, v in inventory.items %}
               {% if v is not None %}
                 <input class="reqBox" type="checkbox" id="reqBox[]" value="{{v.product_name}}" name="reqBox" />{{v.product_name}}
-                <input class="quantity" id="quantity[]" name="quantity" type="number" min="0" max="0" />
+                <input class="quantity" id="quantity[]" name="quantity" type="number" min="0" max="0" {% if v.Consumable == '0' %} loan {% endif %} />
                 <br>
               {% endif %}
               {% endfor %}
@@ -317,7 +317,10 @@
     // If the checkbox is checked, set min to 1, max to 99 and start value as 1
     if (checkBox[index].checked == true){
       text[index].min="1"
-      text[index].max="99"
+      if (text[index].hasAttribute("loan"))
+        text[index].max="1"
+      else
+        text[index].max="99"
       text[index].value="1"
     } else {
       text[index].min="0"
