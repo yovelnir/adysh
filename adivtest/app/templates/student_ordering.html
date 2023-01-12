@@ -109,11 +109,13 @@
             </tr>
           </thead>
           <tbody>
-              {% for k,v in loaning.items %} 
-                      <td>{{k}}</td>
-                      <td>{{v.Quantity}}</td>
-                      <td>{{v.Date}}</td>
-                      <td>{{v.Return}}</td>
+              {% for k,v in loaning.items %}
+              <tr>
+                <td>{{k}}</td>
+                <td>{{v.Quantity}}</td>
+                <td>{{v.Date}}</td>
+                <td>{{v.Return}}</td>
+              </tr>
               {% endfor %}
             </form>
           </tbody>
