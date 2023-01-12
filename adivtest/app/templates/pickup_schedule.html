@@ -1,0 +1,107 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" type="image/png" href="{% static 'fav/favicon.ico' %}"/>
+    <link rel="stylesheet" href="{% static 'styles.css' %}">
+    <link rel="stylesheet" href="{% static 'pickup_schedule.css' %}">
+    <title>Stock Page</title>
+<head> 
+  
+  <body>
+    
+  
+    <div class="main_container">
+        
+      <!-- back button -->
+      <div class="back_button">
+        <a href="{% url 'home' %}">
+          <button type="submit" id="menubtn">
+          <p>Menu</p>
+        </button>
+      </a>   
+    </div>
+      <!-- SCE Logo -->
+      <div class="imgcontainer">
+        <img src="{% static 'SCE_logo.png' %}" alt="Avatar" class="avatar"/>
+      </div>
+
+      <div id="filter_container"> 
+        <form action="" method="POST">
+          {% csrf_token %}
+          <button class="btn_filter" type="submit">Schedule for today</button> 
+          <button class="btn_filter" type="submit" name="tomorrow" value="tomorrow">Schedule for tomorrow</button> 
+      </div> 
+
+      <!-- Table for academic staff members -->
+        <div class="table_date">
+          Schedule for {{date}}
+        </div>
+        {% if weekend %}
+        <div class="table_date">
+          {{weekend}}
+        </div>
+        {% else %}
+        <table class="itemTable">
+            <thead>
+              <tr>
+                <th>Arrival Time</th>
+                <th>Name</th>
+                <th>ID</th>
+                <th>Order</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for k, v in data.items %} 
+              <tr>
+                <td>{{k}}</td> 
+                <td>{{v.name}}</td> 
+                <td>{{v.id}}</td> 
+                <td>
+                  <button class="view">View Order</button>
+                  <div class="items" hidden>
+                  {% for item, amount in v.order.items %}
+                  <p>{{item}} : {{amount}}</p>
+                  {% endfor %}
+                  </div>
+                </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+          </table> 
+          {% endif %}
+     
+          
+         
+          <div id="banner"><h3>ADYSH</h3></div>
+      </div>
+     
+      <script>
+        var temp = document.getElementsByClassName("view")
+        for(let i = 0; i<temp.length; i++)
+        {
+          temp[i].setAttribute("onclick", "showOrder("+i.toString()+")")
+        }
+
+        var temp = document.getElementsByClassName("items")
+        for(let i = 0; i<temp.length; i++)
+        {
+          temp[i].setAttribute("id", "items"+i.toString())
+        }
+
+        function showOrder(index) {
+          // Get the order
+          var order = document.getElementById('items'+index.toString())
+          
+          if (order.hasAttribute("hidden")){
+            order.removeAttribute("hidden")
+          }
+          else
+          order.setAttribute("hidden", "True")
+        }
+      </script>
+</body>
+</html>
