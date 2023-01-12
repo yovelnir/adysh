@@ -126,10 +126,16 @@ def create_user(request):
     num_id, role = int(request.POST.get('id')), int(request.POST.get('role'))
     email, password = request.POST.get('email'), request.POST.get('password')
     short_mail = email[:email.index('@')].lower()
+    students = database.child('users').child('students').get().val()
+    staff = database.child('users').child('staff').get().val()
+    managers = database.child('users').child('managers').get().val()
+    users = {**students, **staff, **managers}
 
-    if short_mail not in database.child('users').child('students').get().val() \
-    and short_mail not in database.child('users').child('staff').get().val() \
-    and short_mail not in database.child('users').child('managers').get().val():
+    if short_mail not in users:
+        for v in users.values():
+            if num_id == v['id']:
+                request.session['msg'] = 'User with the ID: ' + str(num_id) + ' already exists!'
+                return redirect('/home')
         if role == 1:
             #----Creating Student User in Database----#
             if request.POST.getlist('courses'):
@@ -630,7 +636,7 @@ def student_ordering(request):
     if request.POST.get('order'):
         order_details = dict(zip(request.POST.getlist('items'), request.POST.getlist('amount')))
         order_details = {k: int(v) for k,v in order_details.items()}
-        order = {'date': str(date.today()), 'order details': order_details, 'role': 1, 'status': 'approved'}
+        order = {'date': 0, 'order details': order_details, 'role': 1, 'status': 'approved'}
         orders = database.child('orders').get().val()
 
         #----Checking if user already made an order----#
@@ -750,6 +756,39 @@ def checkNotification(request, user_name):
     
     return request 
 
+def pickup_schedule(request):
+    today = date.today()
+
+    if request.POST.get('tomorrow'):
+        today = today + timedelta(1)
+    if today.weekday()+2 == 6 or today.weekday()+2 == 7:
+        if request.POST.get('tomorrow'):
+            data = {'date': today, 
+                'weekend': "Tomorrow is: {}, no pickups at weekends".format(today.strftime("%A"))}
+        else:
+            data = {'date': today, 
+                    'weekend': "Today is: {}, no pickups at weekends".format(today.strftime("%A"))}
+        return render(request, "pickup_schedule.html", data)
+
+    current_month = today.strftime("%b").upper()
+    current_day = today.strftime("%d")
+    current_year = today.year
+
+    orders = database.child('orders').get().val()
+    students = database.child('users').child('students').get().val()
+    schedule = database.child('Schedule').child(current_year).child(current_month).child(current_day).get().val()
+
+    data = {}
+    for k, v in schedule.items():
+        if str(v) in orders:
+            for s in students.values():
+                if int(v) == s['id']:
+                    data[k] = {'order': orders[str(v)]['order details'], 'name': s['full_name'], 'id': v}
+                    break
+    
+    data = {'data': data, 'date': today,}
+
+    return render(request, "pickup_schedule.html", data)
 
 
 
