@@ -60,34 +60,7 @@
           </div>
         </div>
       </div> 
-        <!-- <table>
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Hour</th>
-              </tr>
-            </thead>
-            <tbody>
-              
-              <form method="POST" action=" {% url 'pickup' %}">
-              {% csrf_token %}
-              {% for day,hours in items %} 
-              <tr>
-                <td>{{ day }}</td>
-                <td>
-                  <select name="hour", id="hour">
-                    {% for h in hours %}
-                      <option value="{{day}}/{{h}}">{{ h }}</option>
-                    {% endfor %}
-                  </select>
-                  <button id="submit-button">Submit</button>
-                </td>    
-              </tr>
-              {% endfor %}
-              </form> 
-            </tbody>
-        </table>  -->
-         
+  
       <div id="banner"><h3>ADYSH</h3></div>
     </div> 
   </body>
