@@ -42,4 +42,5 @@ urlpatterns = [
     path('order_status/',views.order_status,name='order_status'),
     path('ordering_new_items/',views.ordering_new_items,name='ordering_new_items'),
     path('pickup/', views.pickup, name = 'pickup'),
+    path('pickup_schedule/', views.pickup_schedule, name='pickup_schedule'),
 ]
