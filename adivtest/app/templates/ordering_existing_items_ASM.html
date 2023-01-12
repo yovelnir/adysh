@@ -5,6 +5,7 @@
         <meta charset="UTF-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="shortcut icon" type="image/png" href="{% static 'fav/favicon.ico' %}"/>
         <link rel="stylesheet" href="{% static 'styles.css' %}">
         <link rel="stylesheet" href="{% static 'ordering_existing_items_ASM.css' %}">
         <title>Order Exist item</title>
@@ -31,23 +32,24 @@
               </tr>
             </thead>
           <tbody>
-            <form id="req_form" class ="req_form" action="{% url 'ordering_existing_items_request' %}" method="POST" onsubmit="submitBtn.disabled=true; submitBtn.value='Sending Request...'">
+            <form id="req_form" class ="req_form" action= "{% url 'ordering_existing_items_request' %}" method="POST" onsubmit="submitBtn.disabled=true; submitBtn.value='Sending Request...'">
                 {% csrf_token %}
                 {% for product_name in items %} 
                 <tr>
                    <col>
                     <td><label for="Name"></label>
                     <input class="reqBox" type="checkbox" id="reqBox[]" value="{{product_name}}" name="reqBox" />{{product_name}}    
-                    <input class="Amount" id="Amount[]" name="Amount" type="number" min="" max=50 />
+                    <input class="Amount" id="Amount[]" name="Amount" type="number" min="1" max=50 />
                </tr>
                
                 {% endfor %}
-              
-            </form>  
-          </tbody>
+               </tbody>
+            <button class="btn_filter" type="submit" name="Send Request" value="submit the order" onclick="return confirm('Your order submit successfully!')">Send Request</input></button>
+  
+  </form>  
+          
         </table> 
-      <button class="btn_filter" type="submit" name="Send Request" value="submit the order" onclick="return confirm('Your order submit successfully!')">Send Request</input></button>
-   
+     
       <div id="banner"><h3>ADYSH</h3></div>
      </body>
         

@@ -14,6 +14,7 @@ import os
 import firebase_admin
 from firebase_admin import credentials, storage
 from datetime import timedelta
+from random import randint
 
 
 config = {
@@ -528,8 +529,9 @@ def ordering_existing_items_table(request):
     user_mail=request.session['email']
     short_mail = user_mail[:user_mail.index('@')]
     user_id=str(database.child('users').child('staff').child(short_mail).child('id').get().val()) 
-    for i in orders_ID.each():
-        if(user_id == database.child('orders').child(i.key()).get().key()):
+    for i in  orders_ID.each(): 
+        if user_id == database.child('orders').child(i.key()).get().key():
+           #-------!!!!!!PROBLEM!!!! not checking in both brenches if there us an order already!!! need to fix
             request.session['msg'] = "you already orderd! please wait until your order approved"
             return redirect ('/home')
     #-----------end of checking ---------------------------------------------------
@@ -538,7 +540,6 @@ def ordering_existing_items_table(request):
     for i in inventory.each():
         if(database.child('Inventory').child(i.key()).child('Quantity').get().val()==0 or database.child('Inventory').child(i.key()).child('Quantity').get().val()==""):
             product_name = database.child('Inventory').child(i.key()).child('product_name').get().val()
-            #product_amount = database.child('Inventory').child(i.key()).child('Quantity').get().val()
             items.append((product_name)) 
                   
     return render(request, "ordering_existing_items_ASM.html", {'items':items}) 
@@ -548,8 +549,7 @@ def  ordering_existing_items_request(request): #------This function running only
     user_mail=request.session['email']
     short_mail = user_mail[:user_mail.index('@')]
     user_id=str(database.child('users').child('staff').child(short_mail).child('id').get().val()) 
-    
-    new_order_branch={'date':0,'order details':{},'role':3,'status':'pending'}
+    new_order_branch={'date':0,'order details':{},'role':3,'status':'pending','new or exist':'exist'}
     database.child('orders').child(user_id).update(new_order_branch)
     items=request.POST.getlist("reqBox")
     inventory=database.child('Inventory').get()
@@ -579,19 +579,79 @@ def order_status(request):
     else:
         return render(request,'submit_an_order_ASM.html',{"msg2":"You haven't ordered anything yet"})
     
-
+#-----------------------US2 ASM ------------------------------------------------
 def ordering_new_items(request):
     
-    new_orders_ID=database.child('order_new_items').get()
+    new_orders_ID=database.child('orders').get()
     user_mail=request.session['email']
     short_mail = user_mail[:user_mail.index('@')]
     user_id=str(database.child('users').child('staff').child(short_mail).child('id').get().val())
     for i in new_orders_ID.each():
-        if(user_id == database.child('order_new_items').child(i.key()).get().key()):
+        if(user_id == database.child('orders').child(i.key()).get().key()):
             return render(request,'submit_an_order_ASM.html',{"msg2":"you already orderd! please wait until your order approved"})
     
     if request.POST.get("comment"):
-        status={'status':'pending','items':request.POST.get("comment")}
-        database.child('order_new_items').child(user_id).set(status)
+        status={'status':'pending','items':request.POST.get("comment"),'new or exist':'new','role':3}
+        database.child('orders').child(user_id).update(status)
         return redirect('/home')
     return render(request,'ordering_new_items.html')
+
+#-----------------------US4 Wmanager----------------------------------------------------
+def manage_orders(request):# this function only craete the table of managing orders
+    
+    orders= database.child('orders').get()
+    order=list()
+    flag=0
+    for i in orders.each():
+        id=database.child('orders').child(i.key()).get().key()
+        if database.child('orders').child(i.key()).child('role').get().val()==3:
+            flag=1
+            status="pending"
+            if database.child('orders').child(i.key()).child('new or exist').get().val()=='new':
+                order_type="new"
+                item_list=database.child('orders').child(i.key()).child('items').get().val() 
+                order.append((id,order_type,item_list,status))
+                
+            else:
+                order_type="exist"
+                item_list=database.child('orders').child(i.key()).child('order details').get()
+                for n in item_list.each():
+                    item_dict={database.child('orders').child(i.key()).child('order details').child(n.key()).get().key():database.child('orders').child(i.key()).child('order details').child(n.key()).get().val()}
+                order.append((id,order_type,item_dict,status))
+    if flag==0:
+        request.session['msg'] = "There is no orders waiting!"
+        return redirect('/home')
+    return render(request, "manage_orders.html", {'order':order})
+
+def manage_orders_approve(request):# this function start to run after clicking approve or decline buttons
+    orders_id=database.child('orders').get()
+    if request.POST.get('approve'):
+        if database.child('orders').child(request.POST.get('approve')).child('new or exist').get().val()=='new': 
+            #--if its new item its doesnt metter if it approved or diclined so the func removes the order from order node    
+            database.child('orders').child(request.POST.get('approve')).remove()
+            request.session['msg'] = "you approved the order!"
+            return redirect('/manage_orders')
+        else:
+            inventory=database.child('Inventory').get()
+            items=database.child('orders').child(request.POST.get('approve')).child('order details').get()
+            for i in items.each():
+                name=database.child('orders').child(request.POST.get('approve')).child('order details').child(i.key()).get().key()
+                quantity=database.child('orders').child(request.POST.get('approve')).child('order details').child(i.key()).get().val()
+                for j in inventory.each():
+                    if str(database.child('Inventory').child(j.key()).child('product_name').get().val())==name:
+                        print(database.child('Inventory').child(j.key()).child('product_name').get().val())
+                        database.child('Inventory').child(j.key()).child('Quantity').set(quantity)
+                        database.child('orders').child(request.POST.get('approve')).remove()
+                request.session['msg'] = "you approved the order!"
+    elif request.POST.get('decline'):
+        if database.child('orders').child(request.POST.get('approve')).child('new or exist').get().val()=='new': 
+            #--if its new item its doesnt metter if it approved or diclined so the func removes the order from order node    
+            database.child('orders').child(request.POST.get('decline')).remove()
+            request.session['msg'] = "you declined the order!"
+            return redirect('/manage_orders')
+        else:
+            database.child('orders').child(request.POST.get('decline')).remove()
+            request.session['msg'] = "you declined the order!"
+    return render(request,'manage_orders.html')
+
+   

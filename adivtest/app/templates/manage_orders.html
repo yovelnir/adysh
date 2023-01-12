@@ -1,0 +1,69 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" type="image/png" href="{% static 'fav/favicon.ico' %}"/>
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css'' %}" />
+    <script src="{% static 'js/bootstrap.min.js' %}"></script>  
+    <link rel="stylesheet" href="{% static 'ordering_existing_items_ASM.css' %}">
+    <link rel="stylesheet" href="{% static 'styles.css' %}" />
+    <title>Manage Orders</title>
+ 
+
+    <!-- back button -->
+    <a href="{% url 'home' %}">
+      <button type="submit" id="btn_back">
+        <img src="{% static 'back_arrow.png' %}" id="btn_back_img" alt="back arrow">
+        <p id="back_text">Back</p>
+      </button>
+    </a> 
+    <!-- SCE Logo -->
+    <div class="imgcontainer">
+      <img src="{% static 'SCE_logo.png' %}" alt="Avatar" class="avatar"/>
+    </div>
+</head> 
+<body>
+<div class="main_container">    
+    <style>
+        table, th, td {
+            border:1px solid #4CAF50;
+            margin-top: 60px;
+            padding: 10px;
+        } 
+    </style>    
+    <form action="{% url 'manage_orders_approve' %}" method="POST">
+        {% csrf_token %}          
+          
+        <table>
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>item list</th>
+                    <th>order type</th>
+                    <th>status</th>
+                
+                </tr>
+                </thead>
+                    <tbody>
+                        {% for id, order_type, item_list, status in order %} 
+                    <tr>
+                        <td>{{ id }}</td>  
+                        <td> {{item_list}}</td>
+                        <td>{{ order_type }}</td>
+                        <td>{{ status }}   <button class="btn_filter" type="submit" name="approve"  value="{{id}}" onclick="return confirm('Are you sure you want to approve the order?')">Approve order</button>
+                            <button class="btn_filter" type="submit" name="decline "  value="{{id}}" style="background-color: red;" onclick="return confirm('Are you sure you want to decline the order?')">Decline order</button>
+                            
+                        </td>
+                    </tr>
+                        {% endfor %}
+                    </tbody>
+            </table> 
+        
+    </form>
+    {% if messg != None %}
+        {{msg}}
+    {% endif %}
+</body>

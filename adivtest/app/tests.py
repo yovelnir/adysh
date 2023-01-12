@@ -1,5 +1,6 @@
 from django.test import TestCase
 from .views import firebase
+from .views import *
 
 db = firebase.database()
 auth = firebase.auth()
@@ -91,3 +92,15 @@ class ViewInventory(TestCase):
     def test_Inventory_Is_Equal_Manager(self): 
         #need to be implemented !
         return False
+
+class OrderNewItemASM(TestCase):
+    def test_if_order_submmited(self):
+        ordering_new_items("aaa")
+        order=db.child('orders').child('user_id').get().key()
+        self.assertFalse(order,None)    
+
+class OrderExisting_item(TestCase):
+    def test_if_order_submitted(self):
+        ordering_existing_items_request({'camera':2})
+        order=db.child('orders').child('user_id').get()
+        self.assertIsNotNone(order)

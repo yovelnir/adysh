@@ -39,5 +39,7 @@ urlpatterns = [
     path('ordering_existing_items_request/',views.ordering_existing_items_request,name='ordering_existing_items_request'),
     path('ordering_existing_items_ASM/',views.order_status,name='ordering_existing_items'),
     path('order_status/',views.order_status,name='order_status'),
-    path('ordering_new_items/',views.ordering_new_items,name='ordering_new_items')
+    path('ordering_new_items/',views.ordering_new_items,name='ordering_new_items'),
+    path('manage_orders/',views.manage_orders,name='manage_orders'),
+    path('manage_orders_approve/',views.manage_orders_approve,name='manage_orders_approve')
 ]
