@@ -68,12 +68,23 @@
                 <td>{{ key }}</td>
                 <td>{{ value }}</td>   
             </tr>  
-        {% endfor %}  
+        {% endfor %}
         {% else %} 
         <tr> 
           <span>There are no new notifications</span>
         </tr> 
         {% endif %}
+        {% if request.session.loan_items %}
+        {% for key, value in request.session.loan_items.items %} 
+            <tr>
+              <td> loaning of {{ key }} ends in {{ value }} days </td>
+            </tr>
+        {% endfor %}
+        {% else %} 
+        <tr> 
+          <span>no loaned items</span>
+        </tr> 
+        {% endif %}  
     </tbody>
     </table>  
         

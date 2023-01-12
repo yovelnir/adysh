@@ -13,7 +13,7 @@ from reportlab.lib.pagesizes import A4
 import os
 import firebase_admin
 from firebase_admin import credentials, storage
-from datetime import timedelta, date
+from datetime import timedelta, date, datetime
 import datetime
 from calendar import monthrange
 from django.http import HttpResponseBadRequest
@@ -735,6 +735,7 @@ def notifyStudents(request):
 def checkNotification(request, user_name): 
     notifications = database.child('users').child('students').child(user_name).child('notify').get()
     dict = {} 
+    loan_dict =  {}
     
     if notifications.val() == None:  
         request.session['notify'] = dict
@@ -747,7 +748,23 @@ def checkNotification(request, user_name):
                 dict[product_name] = item.val()
 
     request.session['notify'] = dict 
-    
+    # --------------------- notifications about loaned items --------------------- #
+    loan_items = database.child('users').child('students').child(user_name).child('loaning').get().val()
+    if loan_items is not None:
+        today = datetime.datetime.today()
+        for i in loan_items:
+            in_date = loan_items[i]['Return']
+            in_year = int(in_date[0:4])
+            in_month = int(in_date[5:7])
+            in_day = int(in_date[8:])
+            return_date = datetime.datetime(year=in_year, month=in_month, day=in_day)
+            delta = return_date - today
+            if delta.days <= 3:
+                loan_dict[i] = delta.days
+        request.session['loan_items'] = loan_dict
+        print(request.session['loan_items'])
+            
+
     return request 
 
 def pickup(request):
