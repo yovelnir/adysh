@@ -93,6 +93,7 @@ def postLogin(request):
         user_data['courses'] = database.child('Courses').get().val()
         user_data['students'] = database.child('users').child('students').get().val()
         for k, v in user_data['students'].items():
+            user_data['students'][k].pop('password')
             if 'loaning' in v:
                 user_data['students'][k].pop('loaning')
             if 'requirements' in v:
@@ -124,14 +125,10 @@ def main_ASM(request):
     return render(request, 'main_ASM.html')
 
 def create_user(request):
-    #-----Getting current session user data-----#
-    email = request.session['email']
-    #-----Getting current session user data-----#
-
     full_name = "{} {}".format(request.POST.get('fname'),request.POST.get('lname'))
     num_id, role = int(request.POST.get('id')), int(request.POST.get('role'))
     email, password = request.POST.get('email'), request.POST.get('password')
-    short_mail = email[:email.index('@')]
+    short_mail = email[:email.index('@')].lower()
 
     if short_mail not in database.child('users').child('students').get().val() \
     and short_mail not in database.child('users').child('staff').get().val() \
@@ -176,10 +173,6 @@ def create_user(request):
     return redirect('/home')
 
 def remove_user(request):
-    #-----Getting current session user data-----#
-    email = request.session['email']
-    #-----Getting current session user data-----#
-
     email = request.POST.get('email')
     if email != request.session['email']:
         #----Checking which role is trying to remove a user ASM or WM----#
@@ -632,26 +625,34 @@ def student_ordering(request):
         course = None
     user_data['course'] = course
 
+    #----Checking if submit order button was pressed----#
     if request.POST.get('order'):
         order_details = dict(zip(request.POST.getlist('items'), request.POST.getlist('amount')))
         order_details = {k: int(v) for k,v in order_details.items()}
         order = {'date': str(date.today()), 'order details': order_details, 'role': 1, 'status': 'approved'}
         orders = database.child('orders').get().val()
+
+        #----Checking if user already made an order----#
         if str(uid) in orders:
             for item in order_details:
+                #----If user already ordered the item for another course, update the order quantity----#
                 if item in orders[str(uid)]['order details']:
                     current = orders[str(uid)]['order details'][item]
                     up = {item: int(order_details[item]) + int(current)}
                     database.child('orders').child(uid).child('order details').update(up)
                 else:
                     database.child('orders').child(uid).child('order details').update({item: order_details[item]})
+        #----Else create a new order in the database with user's ID----#
         else:
             database.child('orders').child(uid).set(order)
 
+        #----Update user's database with items that were ordered for the course----#
         database.child('users').child('students').child(short_mail).child('requirements').child(course).update(order_details)
 
+        #----Updating inventory stocks in the database----#
         for k, i in inventory.items():
             if i['product_name'] in order_details:
+                #----Incase an item needs loaning, the item will be added to the student's database with date of loaning and return by date----#
                 if i['Consumable'] == '0':
                     student = database.child('users').child('students').child(short_mail)
                     student.child('loaning').child(i['product_name']).update({'Quantity': order_details[i['product_name']],
@@ -659,20 +660,24 @@ def student_ordering(request):
                                                                               'Return': str(date(2023,1,19))})
                 database.child('Inventory').child(k).update({'Quantity': i['Quantity'] - order_details[i['product_name']]})
 
+        #----If an item was out-of-stock and the student checked the notification checkbox, add the item to his database for notifications----#
         if request.POST.get('notify'):
             notify = request.POST.getlist('notify')
             notify = {x : inventory[x]['product_name'] for x in notify}
             database.child('users').child('students').child(short_mail).child('notify').update(notify)
 
 
-
+        #----Pull new data from user's database----#
         user_data = database.child('users').child('students').child(short_mail).get().val()
         user_data['course'] = course
     
     if course:
+        #----Pulling course requirements from the database----#
         requirements = database.child('Courses').child(course).child('requirements').get().val()
         user_data['req'] = {}
 
+        #----If user have any loaned items, check if they are needed for this course----#
+        #----if so remove that item from the course requirements and set as ordered in database----#
         if 'loaning' in user_data:
             for item in dict(requirements):
                 if item in user_data['loaning'] and course not in user_data['requirements']:
@@ -684,6 +689,7 @@ def student_ordering(request):
                     database.child('users').child('students').child(short_mail).child('requirements').child(course).update(add)
                     requirements.pop(item)
 
+        #----Check if student already ordered some items for this course----#
         if 'requirements' in user_data:
             if course in user_data['requirements']:
                 if dict(requirements) == user_data['requirements'][course]:
@@ -696,6 +702,7 @@ def student_ordering(request):
                         elif k in user_data['requirements'][course]:
                             requirements[k] = int(requirements[k]) - int(user_data['requirements'][course][k])
 
+        #----Create requirements dictionary to send to the ordering page----#
         for k in requirements:
             for s, i in inventory.items():
                 if i['product_name'] == k:               
@@ -711,16 +718,17 @@ def student_ordering(request):
 
 def notifyStudents(request): 
     serial_number = request.POST['serial_number']
-    student_list = database.child('users').child('students').get() 
-
+    student_list = database.child('users').child('students').get()
     
+
     for student in student_list.each():  
-        field = student.val()      
-        
+        field = student.val() 
+             
         #======= Checking if student marked this item to be notified
         if 'notify' in field:  
-            if serial_number in field['notify']:  
-                user_name = field['full_name'].split()[0]       
+            if serial_number in field['notify']: 
+                user_name = field['full_name'].split()[0]     
+
         #======= Updating in student database the item is now avilable       
                 database.child('users').child('students').child(user_name).child('notify').update({serial_number:'Is Back In Stock'}) 
     

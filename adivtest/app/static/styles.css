@@ -213,6 +213,7 @@ div.modal-content {
   grid-template-columns: auto auto auto auto auto auto auto auto;
   grid-column-gap: 17px;
   grid-row-gap: 7px;
+  align-items: center;
 }
 
 .reqBox, .course_checkbox{
