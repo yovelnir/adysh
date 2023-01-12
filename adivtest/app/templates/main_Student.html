@@ -81,6 +81,12 @@
     </div>
   </div> 
   <!-- End of notification button -->
+  {% if msg %}
+  <div class="alert">
+    <span class="alertCloseBtn" onclick="this.parentElement.style.display='none';">&times;</span> 
+    {{msg}}
+  </div>
+  {% endif %}
 
     <div class="container">
       <a href = "{% url 'student_courses' %}">
@@ -90,13 +96,6 @@
       <a href = "{% url 'pickup' %}">
       <div class="tab"><h2 id="tab_text">Pickup</h2></div></a>
     </div>
-
-    {% if msg %}
-    <div class="alert">
-      <h3>{{msg}}</h3>
-      <span class="alertCloseBtn" onclick="this.parentElement.style.display='none';">ok</span> 
-    </div>
-      {% endif %}
 
     <div id="banner"><h3>ADYSH</h3></div> 
     

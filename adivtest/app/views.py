@@ -742,90 +742,76 @@ def checkNotification(request, user_name):
     
     return request 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 def pickup(request):
+    month_dict = ('JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC')
     max_days_to_show = 10
-    items = list()
-    hours = list()
+    days_list = list()
+    hours_list = list()
     email = request.session['email']
     name = email[:email.index("@")]
     id = str(database.child('users').child(request.session['role']).child(name).child('id').get().val())
     all_orders = database.child('orders').get().val()
-    if id not in all_orders:
-        request.session['msg'] = "you have no orders pending"
-        return redirect('/home')
-    else:
-        order = database.child('orders').child(id).get().val()
-        if order["status"] == "approved":
-            # if order["date"] == 0:
+    print(all_orders)
+    if id in all_orders:
+        this_order = all_orders.get(id)
+        if this_order["status"] == "approved":
+            if this_order["date"] == 0:
                 today = datetime.date.today()
                 day = today.day + 1
                 month = today.month
                 year = today.year
-                count = 1
                 update_schedule_db(year)
-                while count != max_days_to_show:
-                    # m_db = database.child('Schedule').child(year).child(month).get().val()
-                    # if day in m_db:
-                        day1 = database.child('Schedule').child(year).child(month).child(day).get().val()
-                        if day1 is not None:
-                            for h in day1:
-                                if day1[h] == 0:
-                                    hours.append(h)
-                        items.append((f'{day}.{month}', hours))
-                        day = day + 1
-                        count += 1
-                        if day > monthrange(year, month)[1]:
-                            day = 1
-                            month += 1
-                            if month == 13:
-                                month = 1
-                                year += 1
-                                update_schedule_db(year)
-        if request.POST.get("hour"):
-            answer = str(request.POST.get("hour"))
-            name = email[:email.index("@")]
-            d = answer[:answer.index(".")]
-            m = answer[answer.index(".") + 1:answer.index("/")]
-            h = answer[answer.index("/") + 1:]
-            print(answer)
-            print(d)
-            print(m)
-            print(h)
-            database.child('orders').child(id).child("date").set(f'{d}.{m}.{year}/{h}')
-            database.child('Schedule').child(year).child(m).child(d).child(h).set(id)
-            request.session['msg'] = "pickup was scheduled successfully"
+                count = 1
+                for d in range(day, monthrange(year, month)[1] + 1):
+                    obj = datetime.datetime(year=year, month=month, day=d)
+                    if obj.weekday() <= 3 or obj.weekday() == 6:
+                        x = f'{d}.{month}'
+                        days_list.append(x)
+                if len(days_list) < max_days_to_show:
+                    day = 1
+                    month += 1
+                    if month == 13:
+                        year += 1
+                        update_schedule_db(year)
+                    while len(days_list) != max_days_to_show:
+                        obj = datetime.datetime(year=year, month=month, day=d)
+                        if obj.weekday() <= 3 or obj.weekday() == 6:
+                            x = f'{d}.{month}'
+                            days_list.append(x)
+                if request.POST.get('days'):
+                    answer = str(request.POST.get('days'))
+                    picked_day = answer[:answer.index(".")]
+                    month_num = int(answer[answer.index(".")+1:])
+                    picked_month = month_dict[month_num-1]
+                    hours = database.child('Schedule').child(year).child(picked_month).child(picked_day).get().val()
+                    if hours != None:
+                        for h in hours:
+                            if hours[h] == 0:
+                                hours_list.append(h)
+                    request.session['hours_list'] = hours_list
+                    if request.POST.get('hour'):
+                        picked_hour = request.POST.get('hour')
+                        database.child('orders').child(id).update({'date':f'{picked_day}{picked_month}{year} {picked_hour}'})
+                        database.child('orders').child(id).update({'status':'scheduled'})
+                        database.child('Schedule').child(year).child(picked_month).child(picked_day).update({picked_hour: id})
+            else:
+                request.session['msg'] = 'pickup is already scheduled for this order'
+                return redirect('/home')
+        else:
+            request.session['msg'] = f'your order is {this_order["status"]}'
             return redirect('/home')
-    return render(request, "pickup.html", {'items':items})                             
+    else:
+        request.session['msg'] = 'no order in the system'
+        return redirect('/home')               
+
+    return render(request, "pickup.html", {'days_list':days_list, 'hours_list':hours_list}) 
+                          
  
 def update_schedule_db(year1):
     dates = database.child('Schedule').get().val()
-    year1 = str(year1)
-    if year1 in dates:
-        return
+    if dates is not None:
+        if year1 in dates:
+            return
     else:
         times = {}
         for hour in range(10, 18):
@@ -836,7 +822,7 @@ def update_schedule_db(year1):
                 else:
                     times[f'{hour}:{minuts}'] = 0
                 minuts = minuts + 15
-
+        month_dict = ('JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC')
         for m in range(1, 13):
             days = list()
             for d in range(1, monthrange(year1, m)[1] + 1):
@@ -845,5 +831,5 @@ def update_schedule_db(year1):
                     days.append(d)
         
             for x in days:            
-                database.child('Schedule').child(year1).child(m).child(str(x)).set(times)       
+                database.child('Schedule').child(year1).child(month_dict[m-1]).child(str(x)).set(times)       
             days.clear()
