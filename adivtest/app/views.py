@@ -16,6 +16,9 @@ from firebase_admin import credentials, storage
 from datetime import timedelta, date, datetime
 import datetime
 from calendar import monthrange
+from django.http import HttpResponseBadRequest, date, datetime
+import datetime
+from calendar import monthrange
 from django.http import HttpResponseBadRequest
 from random import randint
 
@@ -624,33 +627,33 @@ def ordering_new_items(request):
 #-----------------------US4 Wmanager----------------------------------------------------
 def manage_orders(request):# this function only craete the table of managing orders
     
-    orders= database.child('orders').get()
-    order=list()
-    flag=0
+    orders = database.child('orders').get()
+    order = list()
+    flag = 0
     for i in orders.each():
-        id=database.child('orders').child(i.key()).get().key()
+        id = database.child('orders').child(i.key()).get().key()
         if database.child('orders').child(i.key()).child('role').get().val()==3:
-            flag=1
+            flag = 1
             status="pending"
             if database.child('orders').child(i.key()).child('new or exist').get().val()=='new':
-                order_type="new"
-                item_list=database.child('orders').child(i.key()).child('items').get().val() 
+                order_type = "new"
+                item_list = database.child('orders').child(i.key()).child('items').get().val() 
                 order.append((id,order_type,item_list,status))
                 
             else:
-                order_type="exist"
-                item_list=database.child('orders').child(i.key()).child('order details').get()
+                order_type = "exist"
+                item_list = database.child('orders').child(i.key()).child('order details').get()
                 for n in item_list.each():
-                    item_dict={database.child('orders').child(i.key()).child('order details').child(n.key()).get().key():database.child('orders').child(i.key()).child('order details').child(n.key()).get().val()}
+                    item_dict = {database.child('orders').child(i.key()).child('order details').child(n.key()).get().key():database.child('orders').child(i.key()).child('order details').child(n.key()).get().val()}
                 order.append((id,order_type,item_dict,status))
-    if flag==0:
+    if flag == 0:
         request.session['msg'] = "There is no orders waiting!"
         return redirect('/home')
     return render(request, "manage_orders.html", {'order':order})
 #-----------------------
 
 def manage_orders_approve(request):# this function start to run after clicking approve or decline buttons
-    orders_id=database.child('orders').get()
+    orders_id = database.child('orders').get()
     if request.POST.get('approve'):
         if database.child('orders').child(request.POST.get('approve')).child('new or exist').get().val()=='new': 
             #--if its new item its doesnt metter if it approved or diclined so the func removes the order from order node    
@@ -658,14 +661,13 @@ def manage_orders_approve(request):# this function start to run after clicking a
             request.session['msg'] = "you approved the order!"
             return redirect('/manage_orders')
         else:
-            inventory=database.child('Inventory').get()
-            items=database.child('orders').child(request.POST.get('approve')).child('order details').get()
+            inventory = database.child('Inventory').get()
+            items = database.child('orders').child(request.POST.get('approve')).child('order details').get()
             for i in items.each():
-                name=database.child('orders').child(request.POST.get('approve')).child('order details').child(i.key()).get().key()
-                quantity=database.child('orders').child(request.POST.get('approve')).child('order details').child(i.key()).get().val()
+                name = database.child('orders').child(request.POST.get('approve')).child('order details').child(i.key()).get().key()
+                quantity = database.child('orders').child(request.POST.get('approve')).child('order details').child(i.key()).get().val()
                 for j in inventory.each():
                     if str(database.child('Inventory').child(j.key()).child('product_name').get().val())==name:
-                        print(database.child('Inventory').child(j.key()).child('product_name').get().val())
                         database.child('Inventory').child(j.key()).child('Quantity').set(quantity)
                         database.child('orders').child(request.POST.get('approve')).remove()
                 request.session['msg'] = "you approved the order!"
@@ -688,8 +690,6 @@ def student_ordering(request):
     user_data = database.child('users').child('students').child(short_mail).get().val()
     uid = user_data['id']
     inventory = database.child('Inventory').get().val()
-
-
     if request.POST.get('courseFilter'):
         course = request.POST.get('courseFilter')
     elif request.POST.get('course'):

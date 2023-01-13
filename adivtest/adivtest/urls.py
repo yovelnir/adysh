@@ -21,9 +21,9 @@ from django.conf.urls.static import static #for css and pictures files to be inc
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', views.login_page, name = 'login'),            #login page path
-    path('home/', views.postLogin, name = 'home'),
-    path('main_Student/', views.main_Student, name = 'main_Student'),       #path for Student user 
+    path('', views.login_page, name='login'),            #login page path
+    path('home/', views.postLogin, name='home'),
+    path('main_Student/', views.main_Student, name='main_Student'),       #path for Student user 
     path('main_ASM/',views.main_ASM,name='main_ASM'),         #path to main page for ASM   
     path('create_user/',views.create_user, name='create_user'),
     path('inventory_stock_ASM/',views.inventory_stock, name='inventory_stock_ASM'), 
@@ -38,14 +38,17 @@ urlpatterns = [
     path('ordering_existing_items_ASM/',views.ordering_existing_items_table,name='ordering_existing_items'),
     path('ordering_existing_items_request/',views.ordering_existing_items_request,name='ordering_existing_items_request'),
     path('student_ordering/', views.student_ordering, name="student_ordering"),
+    path('student_ordering/', views.student_ordering, name="student_ordering"),
     path('ordering_existing_items_ASM/',views.order_status,name='ordering_existing_items'),
     path('order_status/',views.order_status,name='order_status'),
     path('ordering_new_items/',views.ordering_new_items,name='ordering_new_items'),
     path('manage_orders/',views.manage_orders,name='manage_orders'),
     path('manage_orders_approve/',views.manage_orders_approve,name='manage_orders_approve'),
-    path('pickup/', views.pickup, name = 'pickup'),
+    path('pickup/', views.pickup, name='pickup'),
     path('pickup_schedule/', views.pickup_schedule, name='pickup_schedule'),
     path('manage_orders_approve/',views.manage_orders_approve,name='manage_orders_approve'),
-    path('pickup/', views.pickup, name = 'pickup'),
-    path('pickup_schedule/', views.pickup_schedule, name='pickup_schedule')
+    path('pickup/', views.pickup, name='pickup'),
+    path('pickup_schedule/', views.pickup_schedule, name='pickup_schedule'),
+    path('pickup/', views.pickup, name='pickup'),
+    path('pickup_schedule/', views.pickup_schedule, name='pickup_schedule'),
 ]
