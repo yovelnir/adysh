@@ -789,7 +789,7 @@ def pickup(request):
     name = email[:email.index("@")]
     id = str(database.child('users').child(request.session['role']).child(name).child('id').get().val())
     all_orders = database.child('orders').get().val()
-    print(all_orders)
+    print(all_orders) #delete?
     if id in all_orders:
         this_order = all_orders.get(id)
         if this_order["status"] == "approved":

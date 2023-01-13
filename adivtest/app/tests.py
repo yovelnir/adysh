@@ -324,15 +324,3 @@ class StudentOrderTest(TestCase):
         db.child('users').child('students').child('jason').child('requirements').child('test_course').remove()
         db.child('users').child('students').child('jason').child('loaning').child(order[0]).remove()
         db.child('orders').child(jason['id']).child('order details').child(order[0]).remove()
-
-
-
-
-     
-
-        
-
-
-
-
-
