@@ -9,17 +9,14 @@ body{
     position: relative;
     display: flex;
     justify-content: center; 
-   
   }
 
 table th, td {
     border: 1px solid; 
     height: 40%; 
-    
 }  
 tr, td{ 
     padding: 8px; 
-
 } 
 .main_container{ 
     padding-top: 8px;

@@ -37,9 +37,15 @@ urlpatterns = [
     path('student_courses/', views.student_courses, name='student_courses'),
     path('ordering_existing_items_ASM/',views.ordering_existing_items_table,name='ordering_existing_items'),
     path('ordering_existing_items_request/',views.ordering_existing_items_request,name='ordering_existing_items_request'),
+    path('student_ordering/', views.student_ordering, name="student_ordering"),
     path('ordering_existing_items_ASM/',views.order_status,name='ordering_existing_items'),
     path('order_status/',views.order_status,name='order_status'),
     path('ordering_new_items/',views.ordering_new_items,name='ordering_new_items'),
     path('manage_orders/',views.manage_orders,name='manage_orders'),
-    path('manage_orders_approve/',views.manage_orders_approve,name='manage_orders_approve')
+    path('manage_orders_approve/',views.manage_orders_approve,name='manage_orders_approve'),
+    path('pickup/', views.pickup, name = 'pickup'),
+    path('pickup_schedule/', views.pickup_schedule, name='pickup_schedule'),
+    path('manage_orders_approve/',views.manage_orders_approve,name='manage_orders_approve'),
+    path('pickup/', views.pickup, name = 'pickup'),
+    path('pickup_schedule/', views.pickup_schedule, name='pickup_schedule')
 ]

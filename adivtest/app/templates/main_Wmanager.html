@@ -51,7 +51,7 @@
     {% if msg %}
     <div class="alert">
       <span class="alertCloseBtn" onclick="this.parentElement.style.display='none';">&times;</span> 
-      <h3>{{msg}}</h3>
+      {{msg}}
     </div>
       {% endif %}
       
@@ -64,7 +64,8 @@
       <a href="{% url 'manage_orders' %}">
       <div class="tab" ><h2 id="tab_text">Manage Orders</h2></div></a>
       <div class="tab" type="button" data-bs-toggle="modal" data-bs-target="#manageUsers"><h2 id="tab_text">Manage Users</h2></div></button>
-      <div class="tab" ><h2 id="tab_text">PickUp Schedule</h2></div>
+
+      <div class="tab" > <a href="{% url 'pickup_schedule' %}"><h2 id="tab_text">PickUp Schedule</h2></a></div>
     </div>
     <div id="banner"><h3>ADYSH</h3></div>
 
