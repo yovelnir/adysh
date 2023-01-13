@@ -20,10 +20,17 @@
           <div class="imgcontainer">
             <img src="{% static 'SCE_logo.png' %}" alt="Avatar" class="avatar"/>
           </div>
-      </head>
+      </head> 
+      <style> 
+        .btn_filter{ 
+          display: flex; 
+          justify-content: center; 
+          margin-top: 18px;
+        }
+      </style>
          
     <body>
-        <div class="main_container">
+      <div id="main_container">
           <table>
             <thead>
               <tr>
@@ -38,16 +45,17 @@
                    <col>
                     <td><label for="Name"></label>
                     <input class="reqBox" type="checkbox" id="reqBox[]" value="{{product_name}}" name="reqBox" />{{product_name}}    
-                    <input class="Amount" id="Amount[]" name="Amount" type="number" min="" max=50 />
-               </tr>
+                    <input class="Amount" placeholder="Enter Amount" id="Amount[]" name="Amount" type="number" min="" max=50 />
+                </tr>
                
                 {% endfor %}
               
-            </form>  
+            
           </tbody>
         </table> 
-      <button class="btn_filter" type="submit" name="Send Request" value="submit the order" onclick="return confirm('Your order submit successfully!')">Send Request</input></button>
-   
+      <button class="btn_filter" type="submit" name="Send Request" value="submit the order">Send Request</input></button>
+    </form>
+  </div> 
       <div id="banner"><h3>ADYSH</h3></div>
      </body>
         

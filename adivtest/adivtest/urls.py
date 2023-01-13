@@ -43,4 +43,7 @@ urlpatterns = [
     path('ordering_new_items/',views.ordering_new_items,name='ordering_new_items'),
     path('pickup/', views.pickup, name = 'pickup'),
     path('pickup_schedule/', views.pickup_schedule, name='pickup_schedule'),
+    path('manage_orders/',views.manage_orders,name='manage_orders'),
+     path('manage_orders_approve/',views.manage_orders_approve,name='manage_orders_approve'),
+
 ]

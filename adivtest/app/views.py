@@ -572,11 +572,8 @@ def  ordering_existing_items_request(request): #------This function running only
     user_mail=request.session['email']
     short_mail = user_mail[:user_mail.index('@')]
     user_id=str(database.child('users').child('staff').child(short_mail).child('id').get().val()) 
-    
     new_order_branch={'date':0,'order details':{},'role':3,'status':'pending'}
-    database.child('orders').child(user_id).update(new_order_branch)
     items=request.POST.getlist("reqBox")
-    inventory=database.child('Inventory').get()
     Amount = request.POST.getlist("Amount")
     i = 0
     while "" in Amount or "0" in Amount:
@@ -584,10 +581,14 @@ def  ordering_existing_items_request(request): #------This function running only
             Amount.pop(i)
         else:
             i+=1
-    data_dict={}
+    data_dict={}   
     for n in range(len(items)):
+        if(len(Amount)==0):
+            continue
         data_dict[items[n]] = int(Amount[n])       
-    database.child('orders').child(user_id).child('order details').set(data_dict)    
+    if(len(Amount)!=0):
+        database.child('orders').child(user_id).update(new_order_branch)
+        database.child('orders').child(user_id).child('order details').update(data_dict)    
     return redirect('/home')
 
 def order_status(request):
@@ -595,13 +596,15 @@ def order_status(request):
     short_mail = user_mail[:user_mail.index('@')]
     user_id=str(database.child('users').child('staff').child(short_mail).child('id').get().val()) 
     Status_existing=str(database.child('orders').child(user_id).child('status').get().val())
-    Status_new=str(database.child('order_new_items').child(user_id).child('status').get().val())
-    if(Status_existing=="pending" or Status_new=="pending"):
-        return render(request,'submit_an_order_ASM.html',{"msg2":"Your order is awaiting confirmation"})
-    elif(Status_existing=="approved" or Status_new=="approved"):
-        return render(request,'submit_an_order_ASM.html',{"msg2":"Your order Approved"}) 
-    else:
-        return render(request,'submit_an_order_ASM.html',{"msg2":"You haven't ordered anything yet"})
+    
+    if database.child('orders').child(user_id):
+        
+        if Status_existing=="pending":
+            return render(request,'submit_an_order_ASM.html',{"msg2":"Your order is awaiting confirmation"})
+        elif Status_existing=="approved":
+            return render(request,'submit_an_order_ASM.html',{"msg2":"Your order Approved"}) 
+        else:
+            return render(request,'submit_an_order_ASM.html',{"msg2":"You haven't ordered anything yet"})
     
 
 def ordering_new_items(request):
@@ -905,3 +908,62 @@ def pickup_schedule(request):
     data = {'data': data, 'date': today,}
 
     return render(request, "pickup_schedule.html", data)
+
+    #-----------------------US4 Wmanager----------------------------------------------------
+def manage_orders(request):# this function only craete the table of managing orders
+    
+    orders = database.child('orders').get()
+    order = list()
+    flag = 0
+    for i in orders.each():
+        id = database.child('orders').child(i.key()).get().key()
+        if database.child('orders').child(i.key()).child('role').get().val()==3:
+            flag = 1
+            status="pending"
+            if database.child('orders').child(i.key()).child('new or exist').get().val()=='new':
+                order_type = "new"
+                item_list = database.child('orders').child(i.key()).child('items').get().val() 
+                print(item_list)
+                order.append((id,order_type,item_list,status))
+                
+            else:
+                order_type = "exist"
+                item_list = database.child('orders').child(i.key()).child('order details').get().val()
+                order.append((id,order_type,item_list,status))
+    if flag==0:
+        order=None
+    
+    return render(request, "manage_orders.html", {'order':order})
+#-----------------------
+
+def manage_orders_approve(request):# this function start to run after clicking approve or decline buttons
+    orders_id = database.child('orders').get()
+    if request.POST.get('approve'):
+        if database.child('orders').child(request.POST.get('approve')).child('new or exist').get().val()=='new': 
+            #--if its new item its doesnt metter if it approved or diclined so the func removes the order from order node    
+            database.child('orders').child(request.POST.get('approve')).remove()
+            request.session['msg'] = "you approved the order!"
+            return redirect('/manage_orders')
+        else:
+            inventory = database.child('Inventory').get()
+            items = database.child('orders').child(request.POST.get('approve')).child('order details').get()
+            for i in items.each():
+                name = database.child('orders').child(request.POST.get('approve')).child('order details').child(i.key()).get().key()
+                quantity = database.child('orders').child(request.POST.get('approve')).child('order details').child(i.key()).get().val()
+                for j in inventory.each():
+                    if str(database.child('Inventory').child(j.key()).child('product_name').get().val())==name:
+                        database.child('Inventory').child(j.key()).child('Quantity').set(quantity)
+                        database.child('orders').child(request.POST.get('approve')).remove()
+                request.session['msg'] = "you approved the order!"
+    elif request.POST.get('decline'):
+        if database.child('orders').child(request.POST.get('approve')).child('new or exist').get().val()=='new': 
+            #--if its new item its doesnt metter if it approved or diclined so the func removes the order from order node    
+            database.child('orders').child(request.POST.get('decline')).remove()
+            request.session['msg'] = "you declined the order!"
+            return redirect('/manage_orders')
+        else:
+            database.child('orders').child(request.POST.get('decline')).remove()
+            request.session['msg'] = "you declined the order!"
+    return render(request,'manage_orders.html')
+
+   
