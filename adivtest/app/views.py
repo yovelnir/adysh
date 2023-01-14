@@ -736,16 +736,16 @@ def student_ordering(request):
 
 def notifyStudents(request): 
     serial_number = request.POST['serial_number']
-    student_list = database.child('users').child('students').get()
+    student_list = database.child('users').child('students').get().val()
     
 
-    for student in student_list.each():  
-        field = student.val() 
+    for student in student_list:  
+        field = student_list[student] 
              
         #======= Checking if student marked this item to be notified
         if 'notify' in field:  
             if serial_number in field['notify']: 
-                user_name = field['full_name'].split()[0]     
+                user_name = student    
 
         #======= Updating in student database the item is now avilable       
                 database.child('users').child('students').child(user_name).child('notify').update({serial_number:'Is Back In Stock'}) 
