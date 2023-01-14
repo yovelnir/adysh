@@ -609,17 +609,17 @@ def order_status(request):
 
 def ordering_new_items(request):
     
-    new_orders_ID=database.child('order_new_items').get()
+    new_orders_ID=database.child('orders').get()
     user_mail=request.session['email']
     short_mail = user_mail[:user_mail.index('@')]
     user_id=str(database.child('users').child('staff').child(short_mail).child('id').get().val())
     for i in new_orders_ID.each():
-        if(user_id == database.child('order_new_items').child(i.key()).get().key()):
+        if(user_id == database.child('orders').child(i.key()).get().key()):
             return render(request,'submit_an_order_ASM.html',{"msg2":"you already orderd! please wait until your order approved"})
     
     if request.POST.get("comment"):
         status={'status':'pending','items':request.POST.get("comment")}
-        database.child('order_new_items').child(user_id).set(status)
+        database.child('orders').child(user_id).set(status)
         return redirect('/home')
     return render(request,'ordering_new_items.html')
 
