@@ -162,10 +162,10 @@ class ManageUsers(TestCase):
         self.assertFalse(user_data, 'User was not removed from the database!')
     
     def test_remove_student_course(self):
-        db.child('users').child('students').child('student').child('courses').update({0: 'test1',})
+        db.child('users').child('students').child('jason').child('courses').update({0: 'test1',})
         request = HttpRequest()
         request.session = {}
-        request.POST['student'] = 'student'
+        request.POST['student'] = 'jason'
         request.POST['courseRemove'] = 'test1'
 
         response = remove_from_course(request)
@@ -324,3 +324,22 @@ class StudentOrderTest(TestCase):
         db.child('users').child('students').child('jason').child('requirements').child('test_course').remove()
         db.child('users').child('students').child('jason').child('loaning').child(order[0]).remove()
         db.child('orders').child(jason['id']).child('order details').child(order[0]).remove()
+
+
+class ManageOrders(TestCase):
+    def test_manage_orders_test(self):
+        request = HttpRequest()
+        response = manage_orders(request)
+
+        self.assertEqual(response.status_code, 200)
+        
+    def approve_order_test(self):
+        db.child('orders').child('123123123').set({'date': 0, 'order details': {'Camera': 1}, 'role': 3, 'status': 'pending'})
+        request = HttpRequest()
+        request.session = {}
+        request.POST['approve'] = 123123123
+
+        response = manage_orders_approve(request)
+        self.assertEqual(response.status_code, 200)
+
+        self.assertEqual(db.child('orders').child('123123123').get().val(), None, 'order should be removed from database after approved')
