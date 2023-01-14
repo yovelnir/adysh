@@ -548,20 +548,20 @@ def student_courses(request):
 
 def ordering_existing_items_table(request):
    #-----------This part of the function is for checking if there is an existing order on the session user, if it does exist the user will be redirect to home/
-    orders_ID=database.child('orders').get()
+    orders_ID=database.child('orders').get().val()
     user_mail=request.session['email']
     short_mail = user_mail[:user_mail.index('@')]
     user_id=str(database.child('users').child('staff').child(short_mail).child('id').get().val()) 
-    for i in orders_ID.each():
-        if(user_id == database.child('orders').child(i.key()).get().key()):
+    for i in orders_ID:
+        if(user_id == i):
             request.session['msg'] = "you already orderd! please wait until your order approved"
             return redirect ('/home')
     #-----------end of checking ---------------------------------------------------
     items = list()  
-    inventory = database.child('Inventory').get()
-    for i in inventory.each():
-        if(database.child('Inventory').child(i.key()).child('Quantity').get().val()==0 or database.child('Inventory').child(i.key()).child('Quantity').get().val()==""):
-            product_name = database.child('Inventory').child(i.key()).child('product_name').get().val()
+    inventory = database.child('Inventory').get().val()
+    for i in inventory:
+        if(inventory[i]['Quantity'] == 0 or inventory[i]['Quantity'] ==""):
+            product_name = inventory[i]['product_name']
             #product_amount = database.child('Inventory').child(i.key()).child('Quantity').get().val()
             items.append((product_name)) 
                   
@@ -594,8 +594,8 @@ def  ordering_existing_items_request(request): #------This function running only
 def order_status(request):
     user_mail=request.session['email']
     short_mail = user_mail[:user_mail.index('@')]
-    user_id=str(database.child('users').child('staff').child(short_mail).child('id').get().val()) 
-    Status_existing=str(database.child('orders').child(user_id).child('status').get().val())
+    user_id=database.child('users').child('staff').child(short_mail).child('id').get().val()
+    Status_existing=database.child('orders').child(user_id).child('status').get().val()
     
     if database.child('orders').child(user_id):
         
@@ -609,17 +609,17 @@ def order_status(request):
 
 def ordering_new_items(request):
     
-    new_orders_ID=database.child('order_new_items').get()
+    new_orders_ID=database.child('orders').get()
     user_mail=request.session['email']
     short_mail = user_mail[:user_mail.index('@')]
     user_id=str(database.child('users').child('staff').child(short_mail).child('id').get().val())
     for i in new_orders_ID.each():
-        if(user_id == database.child('order_new_items').child(i.key()).get().key()):
+        if(user_id == database.child('orders').child(i.key()).get().key()):
             return render(request,'submit_an_order_ASM.html',{"msg2":"you already orderd! please wait until your order approved"})
     
     if request.POST.get("comment"):
         status={'status':'pending','items':request.POST.get("comment")}
-        database.child('order_new_items').child(user_id).set(status)
+        database.child('orders').child(user_id).set(status)
         return redirect('/home')
     return render(request,'ordering_new_items.html')
 
