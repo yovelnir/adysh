@@ -792,17 +792,17 @@ def pickup(request):
     name = email[:email.index("@")]
     id = str(database.child('users').child(request.session['role']).child(name).child('id').get().val())
     all_orders = database.child('orders').get().val()
-    print(all_orders) #delete?
     if id in all_orders:
+        print(2)
         this_order = all_orders.get(id)
         if this_order["status"] == "approved":
             if this_order["date"] == 0:
+                print(12345)
                 today = datetime.date.today()
                 day = today.day + 1
                 month = today.month
                 year = today.year
                 update_schedule_db(year)
-                count = 1
                 for d in range(day, monthrange(year, month)[1] + 1):
                     obj = datetime.datetime(year=year, month=month, day=d)
                     if obj.weekday() <= 3 or obj.weekday() == 6:
@@ -819,7 +819,9 @@ def pickup(request):
                         if obj.weekday() <= 3 or obj.weekday() == 6:
                             x = f'{d}.{month}'
                             days_list.append(x)
+                print('!!!!!!')
                 if request.POST.get('days'):
+                    print('???????????')
                     answer = str(request.POST.get('days'))
                     picked_day = answer[:answer.index(".")]
                     month_num = int(answer[answer.index(".")+1:])
