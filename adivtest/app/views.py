@@ -592,6 +592,7 @@ def  ordering_existing_items_request(request): #------This function running only
     return redirect('/home')
 
 def order_status(request):
+    database = firebase.database()
     user_mail=request.session['email']
     short_mail = user_mail[:user_mail.index('@')]
     user_id=database.child('users').child('staff').child(short_mail).child('id').get().val()
@@ -605,6 +606,7 @@ def order_status(request):
             return render(request,'submit_an_order_ASM.html',{"msg2":"Your order Approved"}) 
         else:
             return render(request,'submit_an_order_ASM.html',{"msg2":"You haven't ordered anything yet"})
+    return redirect('/home')
     
 
 def ordering_new_items(request):
@@ -734,16 +736,16 @@ def student_ordering(request):
 
 def notifyStudents(request): 
     serial_number = request.POST['serial_number']
-    student_list = database.child('users').child('students').get()
+    student_list = database.child('users').child('students').get().val()
     
 
-    for student in student_list.each():  
-        field = student.val() 
+    for student in student_list:  
+        field = student_list[student] 
              
         #======= Checking if student marked this item to be notified
         if 'notify' in field:  
             if serial_number in field['notify']: 
-                user_name = field['full_name'].split()[0]     
+                user_name = student    
 
         #======= Updating in student database the item is now avilable       
                 database.child('users').child('students').child(user_name).child('notify').update({serial_number:'Is Back In Stock'}) 
