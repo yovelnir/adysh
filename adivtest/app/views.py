@@ -592,6 +592,7 @@ def  ordering_existing_items_request(request): #------This function running only
     return redirect('/home')
 
 def order_status(request):
+    database = firebase.database()
     user_mail=request.session['email']
     short_mail = user_mail[:user_mail.index('@')]
     user_id=database.child('users').child('staff').child(short_mail).child('id').get().val()
@@ -605,6 +606,7 @@ def order_status(request):
             return render(request,'submit_an_order_ASM.html',{"msg2":"Your order Approved"}) 
         else:
             return render(request,'submit_an_order_ASM.html',{"msg2":"You haven't ordered anything yet"})
+    return redirect('/home')
     
 
 def ordering_new_items(request):
