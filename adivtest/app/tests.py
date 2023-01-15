@@ -161,12 +161,12 @@ auth = firebase.auth()
 #         user_data = db.child('users').child('staff').child('managertest').get().val()
 #         self.assertFalse(user_data, 'User was not removed from the database!')
     
-#     def test_remove_student_course(self):
-#         db.child('users').child('students').child('student').child('courses').update({0: 'test1',})
-#         request = HttpRequest()
-#         request.session = {}
-#         request.POST['student'] = 'student'
-#         request.POST['courseRemove'] = 'test1'
+    def test_remove_student_course(self):
+        db.child('users').child('students').child('jason').child('courses').update({0: 'test1',})
+        request = HttpRequest()
+        request.session = {}
+        request.POST['student'] = 'jason'
+        request.POST['courseRemove'] = 'test1'
 
 #         response = remove_from_course(request)
 #         self.assertEqual(response.status_code, 302)
@@ -346,29 +346,71 @@ class PickupStudentTest(TestCase):
             'role' : 1,
             'status': 'approved'
         }
-        month_dict = ('JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC')
-        database.child('users').child('students').child('ShaniTest').update(student_data)
-        database.child('orders').child(318822756).update(order_data)
+    
+        database.child('Inventory').child(-1).update(item_data)
+        database.child('users').child('students').child('adivtest').update(student_data)  
 
-        today = datetime.date.today()
-        day = today.day + 3
-        month = today.month
-        year = today.year
-        obj = datetime.datetime(year=year, month=month, day=day)
-        if obj.weekday() == 4 or obj.weekday() == 5:
-            day += 3
-        x = f'{day}.{month}'
-        request.POST['days'] = x
-        request.POST['hour'] = '18:00'
-        database.child('Schedule').child(year).child(month_dict[month-1]).child(day).update({'18:00':0})
-        pickup(request)
-        check_status = database.child('orders').child('318822756').child('status').get().val()
-        check_hour_v = database.child('Schedule').child(year).child(month_dict[month-1]).child(day).child('18:00').get().val()
-        check_date = database.child('orders').child('318822756').child('date').get().val()
-        self.assertEqual(check_date, f'{day}{month_dict[month-1]}{year} 18:00', 'date value is not set')
-        self.assertEqual(check_hour_v, '318822756', 'hour is not set')
-        self.assertEqual(check_status, 'scheduled', 'meeting is not scheduled')
+        request = HttpRequest() 
+        request.POST['serial_number'] = '-1' 
+        notifyStudents(request)
 
-        database.child('Schedule').child(year).child(month_dict[month-1]).child(day).child('18:00').remove()
-        database.child('users').child('students').child('ShaniTest').remove()
-        database.child('orders').child(318822756).remove()
+        msg = database.child('users').child('students').child('adivtest').child('notify').child(-1).get().val()
+        
+        self.assertEqual('Is Back In Stock',msg) 
+
+        database.child('users').child('students').child('adivtest').remove()
+        database.child('Inventory').child(-1).remove()
+
+
+class StudentOrderTest(TestCase):
+    def testStudentOrder(self):
+        order = ['item1', 5]
+        db.child('Inventory').child('test').set({'Consumable': '0', 'Physical_Location': 'A4', 'Quantity': 100, 'product_name': order[0]})
+        db.child('Courses').child('test_course').child('requirements').set({order[0]: order[1]})
+        db.child('users').child('students').child('jason').child('courses').update({2: 'test_course'})
+
+        request = HttpRequest()
+        request.session = {}
+        request.session['email'] = 'jason@gmail.com'
+        request.POST['course'] = 'test_course'
+        request.POST['items'] = order[0]
+        request.POST['amount'] = order[1]
+        request.POST['order'] = 1
+
+        response = student_ordering(request)        
+
+        self.assertEqual(response.status_code, 200)
+
+        jason = db.child('users').child('students').child('jason').get().val()
+        item = db.child('Inventory').child('test').get().val()
+
+        self.assertEqual(jason['requirements']['test_course'], db.child('Courses').child('test_course').child('requirements').get().val(), 'requirements were not ordered!')
+        self.assertTrue(jason['loaning'][order[0]], 'Item needs loaning, but it was not loaned!')
+        self.assertEqual(item['Quantity'], 95, 'Ordered 5 of this item, quantity supposed to be 95!')
+        self.assertTrue(order[0] in db.child('orders').child(jason['id']).child('order details').get().val(), 'item was not added to the order list of Jason')
+
+        db.child('Inventory').child('test').remove()
+        db.child('Courses').child('test_course').remove()
+        db.child('users').child('students').child('jason').child('courses').child(2).remove()
+        db.child('users').child('students').child('jason').child('requirements').child('test_course').remove()
+        db.child('users').child('students').child('jason').child('loaning').child(order[0]).remove()
+        db.child('orders').child(jason['id']).child('order details').child(order[0]).remove()
+
+
+class ManageOrders(TestCase):
+    def test_manage_orders_test(self):
+        request = HttpRequest()
+        response = manage_orders(request)
+
+        self.assertEqual(response.status_code, 200)
+        
+    def approve_order_test(self):
+        db.child('orders').child('123123123').set({'date': 0, 'order details': {'Camera': 1}, 'role': 3, 'status': 'pending'})
+        request = HttpRequest()
+        request.session = {}
+        request.POST['approve'] = 123123123
+
+        response = manage_orders_approve(request)
+        self.assertEqual(response.status_code, 200)
+
+        self.assertEqual(db.child('orders').child('123123123').get().val(), None, 'order should be removed from database after approved')
