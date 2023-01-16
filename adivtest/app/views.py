@@ -821,9 +821,7 @@ def pickup(request):
                         if obj.weekday() <= 3 or obj.weekday() == 6:
                             x = f'{d}.{month}'
                             days_list.append(x)
-                print('!!!!!!')
                 if request.POST.get('days'):
-                    print('???????????')
                     answer = str(request.POST.get('days'))
                     picked_day = answer[:answer.index(".")]
                     month_num = int(answer[answer.index(".")+1:])
@@ -969,5 +967,4 @@ def manage_orders_approve(request):# this function start to run after clicking a
             database.child('orders').child(request.POST.get('decline')).remove()
             request.session['msg'] = "you declined the order!"
     return render(request,'manage_orders.html')
-
-   
+    
